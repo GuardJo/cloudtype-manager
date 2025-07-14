@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: 'postgres:17.5'
+    environment:
+      POSTGRES_DB : cloudtype
+      POSTGRES_USER : manager
+      POSTGRES_PASSWORD : manager0
+    ports:
+      - "5432:5432"
