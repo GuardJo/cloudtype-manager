@@ -29,12 +29,12 @@ jobs:
           cache: gradle
 
       - name: Gradle execute permission for gradlew
-        run: chmod +x gradlew
+        run: chmod +x ./gradlew
         shell: bash
         working-directory: ./cloudtype-manager-api
 
       - name: Build with Gradle
-        run: gradlew clean build -x test
+        run: ./gradlew clean build -x test
         shell: bash
         working-directory: ./cloudtype-manager-api
 
