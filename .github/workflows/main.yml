@@ -1,0 +1,44 @@
+name : cloudtype-manager-api-workflow
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  S3_BUCKET_NAME: cloudtype-manager-deploy-bucket
+  AWS_REGION: ap-northeast-2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Gradle execute permission for gradlew
+        run: chmod +x ./cloudtype-manager-api/gradlew
+        shell: bash
+
+      - name: Build with Gradle
+        run: ./cloudtype-manager-api/gradlew build -x test
+        shell: bash
+
+      - name: Make zip file
+        run: zip -r ./$GITHUB_SHA.zip .
+        shell: bash
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_RESION }}
+
+      - name: Upload S3
+        run: aws s3 cp --region $AWS_REGION ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$GITHUB_SHA.zip
