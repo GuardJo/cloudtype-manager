@@ -21,13 +21,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3.14.
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+          cache: gradle
+
       - name: Gradle execute permission for gradlew
-        run: chmod +x ./cloudtype-manager-api/gradlew
+        run: chmod +x gradlew
         shell: bash
+        working-directory: ./cloudtype-manager-api
 
       - name: Build with Gradle
-        run: ./gradlew build -x test
+        run: gradlew clean build -x test
         shell: bash
+        working-directory: ./cloudtype-manager-api
 
       - name: Make zip file
         run: zip -r ./$GITHUB_SHA.zip .
