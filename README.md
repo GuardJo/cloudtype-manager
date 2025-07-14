@@ -30,6 +30,7 @@ erDiagram
 user_info {
     string username pk
     string password "not null"
+    string name "not null"
     timestamp createAt "not null"
     timestamp modifiedAt "not null"
 }
