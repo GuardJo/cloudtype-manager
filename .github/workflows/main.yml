@@ -21,12 +21,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
+      - name: Move api module
+        run: cd ./cloudtype-manager-api
+
       - name: Gradle execute permission for gradlew
-        run: chmod +x ./cloudtype-manager-api/gradlew
+        run: chmod +x ./gradlew
         shell: bash
 
       - name: Build with Gradle
-        run: ./cloudtype-manager-api/gradlew build -x test
+        run: ./gradlew build -x test
         shell: bash
 
       - name: Make zip file
