@@ -1,9 +1,8 @@
 name: cloudtype-manager-api-workflow
 on:
-  push:
-    branches:
-      - main
   pull_request:
+    paths:
+      - cloudtype-manager-api/**
     branches:
       - main
 
