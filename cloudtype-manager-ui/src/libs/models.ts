@@ -1,0 +1,1 @@
+type ActiveTab = 'home' | 'servers' | 'settings'
