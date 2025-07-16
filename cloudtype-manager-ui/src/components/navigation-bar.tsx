@@ -2,6 +2,7 @@
 
 import {Database, Home, Settings} from "lucide-react";
 import {useRouter} from "next/navigation";
+import {ActiveTab} from "@/libs/models";
 
 /* 네비게이션바 컴포넌트 */
 export default function NavigationBar({activeTab}: NavigationBarProps) {

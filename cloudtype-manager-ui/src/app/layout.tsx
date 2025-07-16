@@ -1,5 +1,6 @@
 import type {Metadata} from "next";
 import "./globals.css";
+import MobileLayout from "@/containers/mobile-layout";
 
 export const metadata: Metadata = {
     title: "Cloudtype Manager",
@@ -16,7 +17,9 @@ export default function RootLayout({
         <body
             className={`antialiased`}
         >
-        {children}
+        <MobileLayout>
+            {children}
+        </MobileLayout>
         </body>
         </html>
     );
