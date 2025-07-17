@@ -1,5 +1,5 @@
 import {HelpCircle} from "lucide-react";
-import {HeaderTitle} from "@/libs/models";
+import {HeaderTitle} from "@/lib/models";
 
 /* 헤더 컴포넌트 */
 export default function Header({headerTitle}: HeaderProps) {

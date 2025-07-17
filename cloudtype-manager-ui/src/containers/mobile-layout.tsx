@@ -4,7 +4,7 @@ import React, {ReactNode, useEffect, useState} from "react";
 import Header from "@/components/header";
 import NavigationBar from "@/components/navigation-bar";
 import {usePathname} from "next/navigation";
-import {ActiveTab, HeaderTitle} from "@/libs/models";
+import {ActiveTab, HeaderTitle} from "@/lib/models";
 
 /* 모바일 레이아웃 컴포넌트 */
 export default function MobileLayout({children}: { children: ReactNode }) {
