@@ -1,9 +1,12 @@
+import LandingContent from "@/components/landing-content";
+
 /* 메인 랜딩 페이지 */
 export default function Home() {
     return (
-        /* TODO 컴포넌트 구현 예정 */
-        <div className="flex flex-col items-center justify-center w-full">
-            <h1>Main Page</h1>
+        <div className="transition-transform duration-300 ease-out translate-x-0" style={{
+            transform: 'translateX(0)',
+        }}>
+            <LandingContent/>
         </div>
     );
 }
