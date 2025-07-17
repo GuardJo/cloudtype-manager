@@ -11,7 +11,7 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const link: Story = {
+export const LinkFeature: Story = {
     args: {
         featureIcon: <Link className='text-white w-6 h-6'/>,
         cardTitle: 'Link',
@@ -19,7 +19,7 @@ export const link: Story = {
     }
 }
 
-export const trendingUp: Story = {
+export const TrendingUpFeature: Story = {
     args: {
         featureIcon: <TrendingUp className='text-white w-6 h-6'/>,
         cardTitle: 'Trending Up',
@@ -27,7 +27,7 @@ export const trendingUp: Story = {
     }
 }
 
-export const info: Story = {
+export const InfoFeature: Story = {
     args: {
         featureIcon: <Info className='text-white w-6 h-6'/>,
         cardTitle: 'Info',
