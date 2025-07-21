@@ -1,0 +1,26 @@
+import {http, HttpResponse} from "msw";
+import {BaseResponse, ServerSummary} from "@/lib/models";
+
+const mockApiServerUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
+
+export const handlers = [
+    http.get(`${mockApiServerUrl}/api/servers`, () => {
+        const serverList: BaseResponse<ServerSummary[]> = {
+            statusCode: 200,
+            status: 'OK',
+            data: [
+                {
+                    serverId: 1,
+                    serverName: '서버 1',
+                    activate: true,
+                },
+                {
+                    serverId: 2,
+                    serverName: '서버 2',
+                    activate: false,
+                },
+            ]
+        }
+        return HttpResponse.json(serverList);
+    })
+]

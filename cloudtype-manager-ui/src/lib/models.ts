@@ -16,3 +16,9 @@ export type ServerSummary = {
     serverName: string,
     activate: boolean
 }
+
+export type BaseResponse<T> = {
+    statusCode: number,
+    status: string,
+    data: T
+}
