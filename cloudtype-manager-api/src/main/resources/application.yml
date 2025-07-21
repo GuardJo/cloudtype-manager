@@ -7,3 +7,16 @@ spring:
     url: jdbc:postgresql://localhost:5432/cloudtype
     username: manager
     password: manager0
+cors:
+  allow-credentials: true
+  allow-headers:
+    - "*"
+  allow-methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "PATCH"
+    - "DELETE"
+    - "OPTIONS"
+  allow-origins:
+    - "http://localhost:3000"
