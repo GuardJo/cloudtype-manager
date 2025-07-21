@@ -4,7 +4,7 @@ import {BaseResponse, ServerSummary} from "@/lib/models";
 const mockApiServerUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
 
 export const handlers = [
-    http.get(`${mockApiServerUrl}/api/servers`, () => {
+    http.get(`${mockApiServerUrl}/api/v1/servers`, () => {
         const serverList: BaseResponse<ServerSummary[]> = {
             statusCode: 200,
             status: 'OK',
