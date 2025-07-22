@@ -29,9 +29,9 @@ export default function MobileLayout({children}: { children: ReactNode }) {
     }, [pathname, activeTabName]);
 
     return (
-        <div className='min-h-screen bg-slate-800 flex flex-col justify-center items-center'>
+        <div className='min-h-screen bg-slate-800'>
             <Header headerTitle={headerTitle}/>
-            {children}
+            <main>{children}</main>
             <NavigationBar activeTab={activeTabName}/>
         </div>
     )
