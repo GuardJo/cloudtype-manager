@@ -4,3 +4,6 @@ spring:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
+cors:
+  allow-origins:
+    - ${API_SERVER_URL}
