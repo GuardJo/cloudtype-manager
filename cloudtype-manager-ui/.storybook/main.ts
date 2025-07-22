@@ -17,7 +17,7 @@ const config: StorybookConfig = {
         {
             ...envConfig,
             NEXT_PUBLIC_API_SERVER_URL: 'http://localhost:8080',
-            NEXT_PUBLIC_API_MOCKING_ENABLE: 'true'
+            NEXT_PUBLIC_MOCK_SERVER_ENABLE: 'true'
         }
     )
 };
