@@ -56,6 +56,12 @@
         animation: fadeIn 0.5s ease-out;
         animation-fill-mode: both;
     }
+
+    @keyframes shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
 }
 
 :root {
