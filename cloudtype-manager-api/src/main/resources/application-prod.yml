@@ -6,4 +6,4 @@ spring:
     password: ${DATABASE_PASSWORD}
 cors:
   allow-origins:
-    - ${API_SERVER_URL}
+    - ${ALLOWED_ORIGIN_SERVER_URL}
