@@ -2,6 +2,7 @@ package org.github.guardjo.cloudtype.manager.config;
 
 import lombok.RequiredArgsConstructor;
 import org.github.guardjo.cloudtype.manager.config.auth.GoogleOAuth2UserService;
+import org.github.guardjo.cloudtype.manager.config.auth.OAuth2AuthenticationSuccessHandler;
 import org.github.guardjo.cloudtype.manager.config.properties.CorsProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
     private final CorsProperties corsProperties;
     private final GoogleOAuth2UserService googleOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,6 +34,7 @@ public class SecurityConfig {
                 .cors(registry -> registry.configurationSource(corsConfigurationSource()))
                 .oauth2Login(configurer -> {
                     configurer.userInfoEndpoint(customizer -> customizer.userService(googleOAuth2UserService));
+                    configurer.successHandler(oAuth2AuthenticationSuccessHandler);
                 });
 
         return http.build();

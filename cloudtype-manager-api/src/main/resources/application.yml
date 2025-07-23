@@ -17,6 +17,12 @@ spring:
             scope:
               - "profile"
               - "email"
+
+jwt:
+  secret: ${JWT_TOKEN_SECRET}
+  access-token-expiration-millis: 1800000 # 30 minutes
+  refresh-token-expiration-millis: 604800000 # 7 days
+
 cors:
   allow-credentials: true
   allow-headers:
