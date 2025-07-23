@@ -1,6 +1,7 @@
 package org.github.guardjo.cloudtype.manager.config;
 
 import lombok.RequiredArgsConstructor;
+import org.github.guardjo.cloudtype.manager.config.auth.GoogleOAuth2UserService;
 import org.github.guardjo.cloudtype.manager.config.properties.CorsProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,18 +18,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CorsProperties corsProperties;
+    private final GoogleOAuth2UserService googleOAuth2UserService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(registry -> {
-                    // FIXME 임시로 전체 인증 해제 처리
+                    registry.requestMatchers("/api/**").authenticated();
                     registry.anyRequest().permitAll();
                 })
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(registry -> {
-                    registry.configurationSource(corsConfigurationSource());
+                .cors(registry -> registry.configurationSource(corsConfigurationSource()))
+                .oauth2Login(configurer -> {
+                    configurer.userInfoEndpoint(customizer -> customizer.userService(googleOAuth2UserService));
                 });
 
         return http.build();
