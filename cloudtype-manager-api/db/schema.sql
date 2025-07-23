@@ -4,6 +4,6 @@ create table user_info
     username    varchar(100) primary key,
     password    varchar(100) not null,
     name        varchar(10)  not null,
-    create_at   timestamp    not null default current_timestamp,
+    created_at  timestamp    not null default current_timestamp,
     modified_at timestamp    not null default current_timestamp
 );
