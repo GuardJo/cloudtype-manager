@@ -8,7 +8,7 @@ JAR_NAME=$(basename $BUILD_JAR)
 export DATABASE_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/database/url --query Parameter.Value | sed 's/"//g')
 export DATABASE_USERNAME=$(aws ssm get-parameter --name /cloudtype-manager-params/database/username --query Parameter.Value | sed 's/"//g')
 export DATABASE_PASSWORD=$(aws ssm get-parameter --name /cloudtype-manager-params/database/password --query Parameter.Value | sed 's/"//g')
-export API_SERVER_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/api-server-url --query Parameter.Value | sed 's/"//g')
+export ALLOWED_ORIGIN_SERVER_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/allowed-origin-server-url --query Parameter.Value | sed 's/"//g')
 
 echo ">>> Setting env, DATABASE_URL : $DATABASE_URL" >> $DEPLOY_LOG_PATH
 
