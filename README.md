@@ -18,34 +18,13 @@ CloudType PaaS 플랫폼과 같은 프리티어 클라우드 서버에 대한 �
     - 현재 관리 중인 서버에 대한 활성 상태, host URL 및 관리자 페이지 접근 등이 가능한 정보를 조회 할 수 있어야 함
 4. **서버 비활성화 시 알림 발송**
     - 관리 중인 서버가 비활성 상태로 변경되거나 문제가 발생 했을 경우, 메신저나 푸시 알림 등이 사용자에게 전달되야 함
-# 화면 시안
-[와이어프레임](https://www.figma.com/design/H3MpuwmQq9ec6APXQb61ZL/cloudtype-manager-ui?node-id=0-1&t=zjgYBRzmXmSdYJew-0)
 
-# ERD
-```mermaid
----
-title: Cloudtype Manager ERD
----
-erDiagram
-user_info {
-    string username pk
-    string password "not null"
-    string name "not null"
-    timestamp createAt "not null"
-    timestamp modifiedAt "not null"
-}
+# 배포 환경
+## UI 모듈
+- Vercel 배포
+- [운영 페이지](https://cloudtype-manager.vercel.app)
 
-server_info {
-    bigint id pk
-    string server_name uk
-    bool activate "not null"
-    string hosting_url
-    string management_url "not null"
-    string health_check_url
-    timestamp createAt "not null"
-    timestamp modifiedAt "not null"
-    string user_id fk "user_info"
-}
-
-user_info ||--o{ server_info : "user_id"
-```
+## API 모듈
+- EC2 배포
+  - caddy 모듈을 통한 https 적용
+- [운영 페이지](https://52.78.88.250.nip.io)
