@@ -9,6 +9,8 @@ export DATABASE_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/dat
 export DATABASE_USERNAME=$(aws ssm get-parameter --name /cloudtype-manager-params/database/username --query Parameter.Value | sed 's/"//g')
 export DATABASE_PASSWORD=$(aws ssm get-parameter --name /cloudtype-manager-params/database/password --query Parameter.Value | sed 's/"//g')
 export ALLOWED_ORIGIN_SERVER_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/allowed-origin-server-url --query Parameter.Value | sed 's/"//g')
+export GOOGLE_OAUTH2_CLIENT_ID=$(aws ssm get-parameter --name /cloudtype-manager-params/google-oauth2-client-id --query Parameter.Value | sed 's/"//g')
+export GOOGLE_OAUTH2_CLIENT_SECRET=$(aws ssm get-parameter --name /cloudtype-manager-params/google-oauth2-client-secret --query Parameter.Value | sed 's/"//g')
 export JWT_TOKEN_SECRET=$(aws ssm get-parameter --name /cloudtype-manager-params/jwt-token-secret --query Parameter.Value | sed 's/"//g')
 export FRONTEND_AUTH_CALLBACK_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/frontend-auth-callback-url -- query Parameter.Value | sed 's/"//g')
 
