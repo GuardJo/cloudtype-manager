@@ -22,6 +22,10 @@ public class UserInfoPrincipal implements UserDetails, OAuth2User {
         return new UserInfoPrincipal(UserInfo.of(entity), attributes);
     }
 
+    public static UserInfoPrincipal from(UserInfoEntity entity) {
+        return new UserInfoPrincipal(UserInfo.of(entity), Map.of());
+    }
+
     @Override
     public String getName() {
         return userInfo.name();

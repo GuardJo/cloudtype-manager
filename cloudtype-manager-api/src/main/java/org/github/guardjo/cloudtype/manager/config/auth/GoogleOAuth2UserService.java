@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -17,7 +20,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class GoogleOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+public class GoogleOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User>, UserDetailsService {
     private final UserInfoEntityRepository userInfoEntityRepository;
 
     @Override
@@ -44,5 +47,14 @@ public class GoogleOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 });
 
         return UserInfoPrincipal.from(userInfoEntity, attributes);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        UserInfoEntity userInfoEntity = userInfoEntityRepository.findById(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Cannot find user, username = " + username));
+
+        return UserInfoPrincipal.from(userInfoEntity);
     }
 }

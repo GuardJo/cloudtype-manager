@@ -36,3 +36,6 @@ cors:
     - "OPTIONS"
   allow-origins:
     - "http://localhost:3000"
+
+frontend:
+  auth-callback-url: "http://localhost:3000/oauth/callback"

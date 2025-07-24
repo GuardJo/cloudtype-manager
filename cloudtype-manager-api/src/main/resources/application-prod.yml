@@ -7,3 +7,5 @@ spring:
 cors:
   allow-origins:
     - ${ALLOWED_ORIGIN_SERVER_URL}
+frontend:
+  auth-callback-url: ${FRONTEND_AUTH_CALLBACK_URL}
