@@ -17,6 +17,7 @@ spring:
             scope:
               - "profile"
               - "email"
+            redirect-uri: ${GOOGLE_OAUTH2_REDIRECT_URL}
 
 jwt:
   secret: ${JWT_TOKEN_SECRET}
