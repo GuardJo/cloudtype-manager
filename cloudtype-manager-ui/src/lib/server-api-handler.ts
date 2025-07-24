@@ -1,4 +1,5 @@
 import {BaseResponse, ServerSummary} from "@/lib/models";
+import {getAuthHeaders, validateResponse} from "@/lib/utils";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
 
@@ -8,10 +9,8 @@ const apiUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
 export async function getServers(): Promise<BaseResponse<ServerSummary[]>> {
     const response = await fetch(`${apiUrl}/api/v1/servers`, {
         method: 'GET',
-        headers: {
-            "Content-Type": "application/json",
-        }
+        headers: getAuthHeaders(),
     });
 
-    return response.json();
+    return validateResponse(response);
 }
