@@ -1,9 +1,9 @@
 'use client';
 
-import {useEffect} from 'react';
+import {Suspense, useEffect} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 
-export default function OAuthCallbackPage() {
+function OAuthCallbackProgress() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -22,4 +22,12 @@ export default function OAuthCallbackPage() {
             <p>Processing authentication...</p>
         </div>
     );
+}
+
+export default function OAuthCallbackPage() {
+    return (
+        <Suspense>
+            <OAuthCallbackProgress/>
+        </Suspense>
+    )
 }
