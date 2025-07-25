@@ -13,7 +13,7 @@ export GOOGLE_OAUTH2_CLIENT_ID=$(aws ssm get-parameter --name /cloudtype-manager
 export GOOGLE_OAUTH2_CLIENT_SECRET=$(aws ssm get-parameter --name /cloudtype-manager-params/google-oauth2-client-secret --query Parameter.Value | sed 's/"//g')
 export GOOGLE_OAUTH2_REDIRECT_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/google-oauth2-redirect-url --query Parameter.Value | sed 's/"//g')
 export JWT_TOKEN_SECRET=$(aws ssm get-parameter --name /cloudtype-manager-params/jwt-token-secret --query Parameter.Value | sed 's/"//g')
-export FRONTEND_AUTH_CALLBACK_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/frontend-auth-callback-url -- query Parameter.Value | sed 's/"//g')
+export FRONTEND_AUTH_CALLBACK_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/frontend-auth-callback-url --query Parameter.Value | sed 's/"//g')
 
 echo ">>> Setting env, DATABASE_URL : $DATABASE_URL" >> $DEPLOY_LOG_PATH
 
