@@ -1,3 +1,5 @@
+"use client"
+
 import {Button} from "@/components/ui/button";
 
 /* 관리 서버 요청 기능 영역 컴포넌트 */
