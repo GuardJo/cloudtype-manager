@@ -14,19 +14,19 @@ export const DisableActions: Story = {
     args: {},
 }
 
-export const enableDashboardAction: Story = {
+export const EnableDashboardAction: Story = {
     args: {
         dashboardUrl: 'https://google.com'
     }
 }
 
-export const enableViewEventAction: Story = {
+export const EnableViewEventAction: Story = {
     args: {
         viewEventUrl: 'https://google.com'
     }
 }
 
-export const enableAllActions: Story = {
+export const EnableAllActions: Story = {
     args: {
         dashboardUrl: 'https://naver.com',
         viewEventUrl: 'https://google.com'
