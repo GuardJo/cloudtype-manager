@@ -1,4 +1,4 @@
-import {BaseResponse, ServerDetail, ServerSummary} from "@/lib/models";
+import {BaseResponse, ServerAddParams, ServerDetail, ServerSummary} from "@/lib/models";
 import {getAuthHeaders, validateResponse} from "@/lib/utils";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
@@ -22,6 +22,19 @@ export async function getServerDetail(serverId: number): Promise<BaseResponse<Se
     const response = await fetch(`${apiUrl}/api/v1/servers/${serverId}`, {
         method: 'GET',
         headers: getAuthHeaders(),
+    })
+
+    return validateResponse(response);
+}
+
+/**
+ * 서버 추가 API 요청
+ */
+export async function addServer(addParams: ServerAddParams): Promise<BaseResponse<string>> {
+    const response = await fetch(`${apiUrl}/api/v1/servers`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(addParams),
     })
 
     return validateResponse(response);

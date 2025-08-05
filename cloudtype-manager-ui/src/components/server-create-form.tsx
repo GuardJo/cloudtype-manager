@@ -2,6 +2,9 @@
 import {Button} from "@/components/ui/button";
 import {ServerAddParams} from "@/lib/models";
 import {useState} from "react";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
+import {addServer} from "@/lib/server-api-handler";
+import {useRouter} from "next/navigation";
 
 /* 관리 서버 등록 폼 */
 export default function ServerCreateForm() {
@@ -9,6 +12,21 @@ export default function ServerCreateForm() {
         serverName: '',
         serverUrl: '',
         managementUrl: ''
+    })
+    const router = useRouter()
+    const queryClient = useQueryClient()
+    const addServerMutation = useMutation({
+        mutationKey: ['addServer'],
+        mutationFn: (addServerParam: ServerAddParams) => addServer(addServerParam),
+        onSuccess: () => {
+            window.alert(`Server Added Successfully!`)
+            queryClient.invalidateQueries({queryKey: ['getServers']})
+            router.replace('/servers')
+        },
+        onError: (e) => {
+            window.alert(`Failed to create server: ${e.message}`)
+            console.error(e)
+        }
     })
 
     const handleInputData = (field: string, value: string) => {
@@ -23,8 +41,7 @@ export default function ServerCreateForm() {
     const isValidaFormData: boolean = !!(formData.serverUrl.trim() && formData.serverName.trim() && formData.managementUrl.trim())
 
     const submitAddServer = () => {
-        // TODO API 연동
-        console.log(JSON.stringify(formData))
+        addServerMutation.mutate(formData)
     }
 
     return (
