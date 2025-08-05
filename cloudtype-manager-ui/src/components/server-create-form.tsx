@@ -24,19 +24,21 @@ export default function ServerCreateForm() {
             router.replace('/servers')
         },
         onError: (e) => {
-            window.alert(e.message)
             console.error(e)
+            window.alert(e.message)
         },
         onMutate: (variables: ServerAddParams) => {
             try {
                 new URL(variables.serverUrl)
             } catch (e) {
+                console.log(e)
                 throw new Error('Server URL이 올바르지 않습니다.')
             }
 
             try {
                 new URL(variables.managementUrl)
             } catch (e) {
+                console.log(e)
                 throw new Error('Dashboard URL이 올바르지 않습니다.')
             }
         }
