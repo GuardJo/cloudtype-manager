@@ -10,6 +10,9 @@ import {ActiveTab, HeaderTitle} from "@/lib/models";
 export default function MobileLayout({children}: { children: ReactNode }) {
     const [activeTabName, setActiveTabName] = useState<ActiveTab>('home')
     const [headerTitle, setHeaderTitle] = useState<HeaderTitle>('Cloudtype Manager')
+    const [showNavigationBar, setShowNavigationBar] = useState(true)
+    const [showHeaderBackButton, setShowHeaderBackButton] = useState(false)
+
     const pathname = usePathname()
 
     useEffect(() => {
@@ -18,7 +21,7 @@ export default function MobileLayout({children}: { children: ReactNode }) {
             setHeaderTitle('Cloudtype Manager')
         } else if (pathname.startsWith('/servers')) {
             setActiveTabName('servers')
-            setHeaderTitle('Servers')
+            setHeaderTitle(pathname.startsWith('/servers/') ? 'Server Detail' : 'Servers')
         } else if (pathname.startsWith('/settings')) {
             setActiveTabName('settings')
             setHeaderTitle('Settings')
@@ -26,13 +29,18 @@ export default function MobileLayout({children}: { children: ReactNode }) {
             setActiveTabName('home')
             setHeaderTitle('Cloudtype Manager')
         }
+
+        setShowNavigationBar(!pathname.startsWith('/servers/'))
+        setShowHeaderBackButton(pathname.startsWith('/servers/'))
     }, [pathname, activeTabName]);
 
     return (
         <div className='min-h-screen bg-slate-800'>
-            <Header headerTitle={headerTitle}/>
+            <Header headerTitle={headerTitle} showBackButton={showHeaderBackButton}/>
             <main>{children}</main>
-            <NavigationBar activeTab={activeTabName}/>
+            {showNavigationBar && (
+                <NavigationBar activeTab={activeTabName}/>
+            )}
         </div>
     )
 }
