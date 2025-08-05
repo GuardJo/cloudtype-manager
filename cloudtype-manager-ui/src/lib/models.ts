@@ -26,6 +26,15 @@ export type ServerDetail = ServerSummary & {
 }
 
 /**
+ * 서버 추가 요청
+ */
+export type ServerAddParams = {
+    serverName: string,
+    serverUrl: string,
+    managementUrl: string,
+}
+
+/**
  * API 서버 기본 응답 구조
  */
 export type BaseResponse<T> = {
