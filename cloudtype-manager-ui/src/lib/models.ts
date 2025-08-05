@@ -22,7 +22,7 @@ export type ServerSummary = {
  */
 export type ServerDetail = ServerSummary & {
     hostingUrl: string,
-    managementUrl: string,
+    managementUrl?: string,
 }
 
 /**

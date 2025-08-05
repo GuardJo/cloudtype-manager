@@ -1,5 +1,5 @@
 import {http, HttpResponse} from "msw";
-import {BaseResponse, ServerSummary} from "@/lib/models";
+import {BaseResponse, ServerDetail, ServerSummary} from "@/lib/models";
 
 const mockApiServerUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
 
@@ -22,5 +22,22 @@ export const handlers = [
             ]
         }
         return HttpResponse.json(serverList);
+    }),
+    http.get(`${mockApiServerUrl}/api/v1/servers/:id`, ({params}) => {
+        const serverId = params.id;
+
+        const serverDetail: BaseResponse<ServerDetail> = {
+            statusCode: 200,
+            status: 'OK',
+            data: {
+                serverId: Number(serverId),
+                serverName: 'Server A',
+                activate: true,
+                hostingUrl: 'https://naver.com',
+                managementUrl: 'https://google.com'
+            }
+        }
+
+        return HttpResponse.json(serverDetail);
     })
 ]

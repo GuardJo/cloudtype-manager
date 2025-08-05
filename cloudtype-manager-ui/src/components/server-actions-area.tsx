@@ -4,8 +4,10 @@ import {Button} from "@/components/ui/button";
 
 /* 관리 서버 요청 기능 영역 컴포넌트 */
 export default function ServerActionsArea({dashboardUrl, viewEventUrl}: ServerActionsAreaProps) {
-    const handleOpenExternalUrl = (externalUrl: URL | undefined) => {
-        window.open(externalUrl);
+    const handleOpenExternalUrl = (externalUrl: string | undefined) => {
+        if (externalUrl !== undefined) {
+            window.open(new URL(externalUrl));
+        }
     }
 
     return (
@@ -30,6 +32,6 @@ export default function ServerActionsArea({dashboardUrl, viewEventUrl}: ServerAc
 }
 
 interface ServerActionsAreaProps {
-    dashboardUrl?: URL,
-    viewEventUrl?: URL,
+    dashboardUrl?: string,
+    viewEventUrl?: string,
 }
