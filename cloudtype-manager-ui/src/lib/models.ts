@@ -1,7 +1,7 @@
 /**
  * 헤더명 종류
  */
-export type HeaderTitle = 'Cloudtype Manager' | 'Servers' | 'Settings'
+export type HeaderTitle = 'Cloudtype Manager' | 'Servers' | 'Settings' | 'Server Detail'
 
 /**
  * navbar 이동 탭 종류

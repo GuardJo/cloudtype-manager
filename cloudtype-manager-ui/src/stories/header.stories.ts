@@ -25,3 +25,9 @@ export const Settings: Story = {
         headerTitle: 'Settings'
     },
 }
+export const Detail: Story = {
+    args: {
+        headerTitle: 'Server Detail',
+        showBackButton: true
+    }
+}
