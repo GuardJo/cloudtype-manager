@@ -24,8 +24,21 @@ export default function ServerCreateForm() {
             router.replace('/servers')
         },
         onError: (e) => {
-            window.alert(`Failed to create server: ${e.message}`)
+            window.alert(e.message)
             console.error(e)
+        },
+        onMutate: (variables: ServerAddParams) => {
+            try {
+                new URL(variables.serverUrl)
+            } catch (e) {
+                throw new Error('Server URL이 올바르지 않습니다.')
+            }
+
+            try {
+                new URL(variables.managementUrl)
+            } catch (e) {
+                throw new Error('Dashboard URL이 올바르지 않습니다.')
+            }
         }
     })
 
