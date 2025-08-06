@@ -37,12 +37,12 @@ timestamp modifiedAt "not null"
 }
 
 server_info {
-bigint id pk
-string server_name uk
+bigint id pk "auto increment"
+string server_name uk "not null"
 bool activate "not null"
 string hosting_url
 string management_url "not null"
-string health_check_url
+string health_check_url "not null"
 timestamp createAt "not null"
 timestamp modifiedAt "not null"
 string user_id fk "user_info"

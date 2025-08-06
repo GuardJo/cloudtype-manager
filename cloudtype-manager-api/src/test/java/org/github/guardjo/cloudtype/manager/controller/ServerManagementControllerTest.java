@@ -1,0 +1,84 @@
+package org.github.guardjo.cloudtype.manager.controller;
+
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.github.guardjo.cloudtype.manager.config.auth.JwtTokenProvider;
+import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
+import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
+import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
+import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
+import org.github.guardjo.cloudtype.manager.service.ServerManagementService;
+import org.github.guardjo.cloudtype.manager.util.TestDataGenerator;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(controllers = ServerManagementController.class)
+class ServerManagementControllerTest {
+    private final static UserInfoEntity TEST_USER = TestDataGenerator.userInfoEntity("Tester");
+    private final static UserInfoPrincipal TEST_USER_DETAILS = UserInfoPrincipal.from(TEST_USER);
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private ServerManagementService serverManagementService;
+
+    @MockitoBean
+    private JwtTokenProvider tokenProvider;
+
+    @DisplayName("GET : /api/v1/servers")
+    @Test
+    void test_getServers() throws Exception {
+        UserInfo userInfo = TEST_USER_DETAILS.getUserInfo();
+        List<ServerSummary> expected = Stream.of(
+                        TestDataGenerator.serverInfoEntity(1L, "Server 1", TEST_USER),
+                        TestDataGenerator.serverInfoEntity(2L, "Server 2", TEST_USER)
+                )
+                .map(ServerSummary::of)
+                .toList();
+
+        given(serverManagementService.getServerSummaries(eq(userInfo))).willReturn(expected);
+
+        String response = mockMvc.perform(get("/api/v1/servers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(user(TEST_USER_DETAILS)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+
+        JavaType listType = objectMapper.getTypeFactory().constructCollectionType(List.class, ServerSummary.class);
+        JavaType responseType = objectMapper.getTypeFactory().constructParametricType(BaseResponse.class, listType);
+
+        BaseResponse<List<ServerSummary>> actual = objectMapper.readValue(response, responseType);
+        assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(actual.getStatus()).isEqualTo(HttpStatus.OK.name());
+        assertThat(actual.getData()).isEqualTo(expected);
+
+        then(serverManagementService).should().getServerSummaries(eq(userInfo));
+    }
+}
