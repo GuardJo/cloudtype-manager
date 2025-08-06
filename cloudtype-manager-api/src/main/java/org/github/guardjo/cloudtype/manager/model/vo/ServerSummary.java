@@ -1,6 +1,7 @@
 package org.github.guardjo.cloudtype.manager.model.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 
 /* 서버 요약 정보 VO */
 public record ServerSummary(
@@ -13,4 +14,11 @@ public record ServerSummary(
         @Schema(description = "활성화 여부", example = "true")
         boolean activate
 ) {
+    public static ServerSummary of(ServerInfoEntity entity) {
+        return new ServerSummary(
+                entity.getId(),
+                entity.getServerName(),
+                entity.isActivate()
+        );
+    }
 }
