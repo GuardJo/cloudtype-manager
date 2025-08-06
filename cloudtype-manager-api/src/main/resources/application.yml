@@ -18,11 +18,17 @@ spring:
               - "profile"
               - "email"
             redirect-uri: ${GOOGLE_OAUTH2_REDIRECT_URL}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
 
 jwt:
   secret: ${JWT_TOKEN_SECRET}
-  access-token-expiration-millis: 1800000 # 30 minutes
-  refresh-token-expiration-millis: 604800000 # 7 days
+  access-token-expiration-millis: 1_800_000 # 30 minutes
+  refresh-token-expiration-millis: 604_800_000 # 7 days
 
 cors:
   allow-credentials: true

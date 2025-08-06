@@ -1,0 +1,23 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: "GOOGLE_OAUTH2_CLIENT_ID"
+            client-secret: "GOOGLE_OAUTH2_CLIENT_SECRET"
+            scope:
+              - "profile"
+              - "email"
+            redirect-uri: "GOOGLE_OAUTH2_REDIRECT_URL"
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: "this-is-just-super-long-secret-key-for-local-test-and-it-will-be-replaced-in-production-env"
+  access-token-expiration-millis: 1_800_000 # 30 minutes
+  refresh-token-expiration-millis: 604_800_000 # 7 days
