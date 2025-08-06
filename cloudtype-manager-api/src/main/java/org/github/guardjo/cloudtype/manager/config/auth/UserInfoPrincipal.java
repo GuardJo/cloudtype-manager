@@ -1,6 +1,7 @@
 package org.github.guardjo.cloudtype.manager.config.auth;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
@@ -15,6 +16,7 @@ import java.util.Map;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserInfoPrincipal implements UserDetails, OAuth2User {
+    @Getter
     private final UserInfo userInfo;
     private final Map<String, Object> attributes;
 

@@ -1,11 +1,15 @@
 package org.github.guardjo.cloudtype.manager.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
 import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerDetail;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
+import org.github.guardjo.cloudtype.manager.service.ServerManagementService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,19 +17,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/servers")
 @Slf4j
+@RequiredArgsConstructor
 public class ServerManagementController implements ServerManagementApiDoc {
+    private final ServerManagementService serverManagementService;
+
     @GetMapping
     @Override
-    public BaseResponse<List<ServerSummary>> getServers() {
-        // TODO 기능 구현 예정
-        // 더미 데이터 반환
-        ServerSummary serverSummary = new ServerSummary(
-                1L,
-                "서버 1",
-                true
-        );
+    public BaseResponse<List<ServerSummary>> getServers(@AuthenticationPrincipal UserInfoPrincipal principal) {
+        log.debug("GET : /api/v1/servers, username = {}", principal.getUsername());
 
-        return BaseResponse.of(HttpStatus.OK, List.of(serverSummary));
+        List<ServerSummary> serverSummaries = serverManagementService.getServerSummaries(principal.getUserInfo());
+
+        return BaseResponse.of(HttpStatus.OK, serverSummaries);
     }
 
     @GetMapping("/{serverId}")

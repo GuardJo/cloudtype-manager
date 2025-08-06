@@ -21,4 +21,15 @@ public class TestDataGenerator {
                 .userInfo(userInfo)
                 .build();
     }
+
+    public static ServerInfoEntity serverInfoEntity(Long serverId, String serverName, UserInfoEntity userInfo) {
+        return ServerInfoEntity.builder()
+                .id(serverId)
+                .serverName(serverName)
+                .healthCheckUrl("https://google.com")
+                .hostingUrl("https://github.com")
+                .managementUrl("https://cloudtype.io")
+                .userInfo(userInfo)
+                .build();
+    }
 }
