@@ -11,11 +11,8 @@ public record UserInfo(
         LocalDateTime createAt,
         LocalDateTime modifiedAt
 ) {
-    public static UserInfo from(String id, String name, String email) {
-        return new UserInfo(id, name, email, null, null);
-    }
 
-    public static UserInfo of(UserInfoEntity entity) {
+    public static UserInfo from(UserInfoEntity entity) {
         return new UserInfo(
                 entity.getUsername(),
                 entity.getName(),

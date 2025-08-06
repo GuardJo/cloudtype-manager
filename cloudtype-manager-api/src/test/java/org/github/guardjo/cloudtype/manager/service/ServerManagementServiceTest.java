@@ -47,7 +47,7 @@ class ServerManagementServiceTest {
 
         given(serverInfoRepository.findAllByUserInfo_Username(eq(username))).willReturn(serverInfoEntities);
 
-        List<ServerSummary> actual = serverManagementService.getServerSummaries(UserInfo.of(TEST_USER));
+        List<ServerSummary> actual = serverManagementService.getServerSummaries(UserInfo.from(TEST_USER));
         assertThat(actual).isEqualTo(expected);
 
         then(serverInfoRepository).should().findAllByUserInfo_Username(eq(username));
