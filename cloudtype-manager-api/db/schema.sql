@@ -20,7 +20,7 @@ create table server_info
     hosting_url      varchar(500),
     health_check_url varchar(500) not null,
     management_url   varchar(500) not null,
-    user_id          varchar(100),
+    user_id          varchar(100) not null,
     created_at       timestamp    not null default current_timestamp,
     modified_at      timestamp    not null default current_timestamp,
     foreign key (user_id) references user_info (username)

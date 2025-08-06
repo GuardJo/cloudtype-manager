@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +28,6 @@ public class ServerManagementServiceImpl implements ServerManagementService {
 
         return serverInfoEntities.stream()
                 .map(ServerSummary::of)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

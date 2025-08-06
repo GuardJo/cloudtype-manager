@@ -30,8 +30,7 @@ class ServerInfoEntityRepositoryTest {
     void setUp() {
         userInfoEntityRepository.save(TEST_USER);
         for (int i = 0; i < 5; i++) {
-            ServerInfoEntity serverInfoEntity = TestDataGenerator.serverInfoEntity("Server " + i, TEST_USER);
-            serverInfos.add(serverInfoEntity);
+            serverInfos.add(TestDataGenerator.serverInfoEntity("Server " + i, TEST_USER));
         }
 
         serverInfoRepository.saveAll(serverInfos);
