@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.github.guardjo.cloudtype.manager.config.auth.JwtTokenProvider;
 import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
@@ -12,8 +13,12 @@ import org.github.guardjo.cloudtype.manager.service.ServerManagementService;
 import org.github.guardjo.cloudtype.manager.util.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -25,10 +30,11 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -80,5 +86,68 @@ class ServerManagementControllerTest {
         assertThat(actual.getData()).isEqualTo(expected);
 
         then(serverManagementService).should().getServerSummaries(eq(userInfo));
+    }
+
+    @DisplayName("POST : /api/v1/servers")
+    @ParameterizedTest
+    @MethodSource("getAddNewServerTestData")
+    void test_addNewServer(CreateServerRequest createServerRequest, int expectedStatusCode) throws Exception {
+        willDoNothing().given(serverManagementService).addServer(eq(createServerRequest), eq(TEST_USER_DETAILS.getUserInfo()));
+
+        mockMvc.perform(post("/api/v1/servers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(createServerRequest))
+                        .with(user(TEST_USER_DETAILS))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().is(expectedStatusCode));
+
+        if (expectedStatusCode == HttpStatus.OK.value()) {
+            then(serverManagementService).should().addServer(eq(createServerRequest), eq(TEST_USER_DETAILS.getUserInfo()));
+        } else {
+            then(serverManagementService).should(never()).addServer(eq(createServerRequest), eq(TEST_USER_DETAILS.getUserInfo()));
+        }
+    }
+
+    @DisplayName("POST : /api/v1/servers -> Conflict Error")
+    @Test
+    void test_addNewServer_return_duplicate_key_exception() throws Exception {
+        CreateServerRequest createServerRequest = new CreateServerRequest(
+                "Test Server",
+                "https://naver.com",
+                "https://google.com"
+        );
+        willThrow(DataIntegrityViolationException.class).given(serverManagementService).addServer(eq(createServerRequest), eq(TEST_USER_DETAILS.getUserInfo()));
+
+        mockMvc.perform(post("/api/v1/servers")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(createServerRequest))
+                        .with(csrf())
+                        .with(user(TEST_USER_DETAILS)))
+                .andDo(print())
+                .andExpect(status().isConflict());
+
+        then(serverManagementService).should().addServer(eq(createServerRequest), eq(TEST_USER_DETAILS.getUserInfo()));
+    }
+
+    private static Stream<Arguments> getAddNewServerTestData() {
+        return Stream.of(
+                Arguments.of(
+                        new CreateServerRequest(
+                                "Test Server",
+                                "https://naver.com",
+                                "https://google.com"
+                        ),
+                        HttpStatus.OK.value()
+                ),
+                Arguments.of(
+                        new CreateServerRequest(
+                                "Test Server",
+                                "https://naver.com",
+                                ""
+                        ),
+                        HttpStatus.BAD_REQUEST.value()
+                )
+        );
     }
 }

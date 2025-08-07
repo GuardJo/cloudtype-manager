@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.service;
 
+import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 
@@ -14,4 +15,11 @@ public interface ServerManagementService {
      * @return ServerSummary 목록
      */
     List<ServerSummary> getServerSummaries(UserInfo userInfo);
+
+    /**
+     * 주어진 데이터를 기반으로 신규 server를 등록한다.
+     *
+     * @param createRequest 신규 server 등록 정보
+     */
+    void addServer(CreateServerRequest createRequest, UserInfo userInfo);
 }

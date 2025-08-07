@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
@@ -24,7 +25,7 @@ public class ServerManagementController implements ServerManagementApiDoc {
     @GetMapping
     @Override
     public BaseResponse<List<ServerSummary>> getServers(@AuthenticationPrincipal UserInfoPrincipal principal) {
-        log.debug("GET : /api/v1/servers, username = {}", principal.getUsername());
+        log.info("GET : /api/v1/servers, username = {}", principal.getUsername());
 
         List<ServerSummary> serverSummaries = serverManagementService.getServerSummaries(principal.getUserInfo());
 
@@ -48,8 +49,10 @@ public class ServerManagementController implements ServerManagementApiDoc {
 
     @PostMapping
     @Override
-    public BaseResponse<String> addNewServer(@RequestBody CreateServerRequest createServerRequest) {
-        // TODO 기능 구현 예정
+    public BaseResponse<String> addNewServer(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestBody @Valid CreateServerRequest createServerRequest) {
+        log.info("POST : /api/v1/servers, username = {}", principal.getUsername());
+
+        serverManagementService.addServer(createServerRequest, principal.getUserInfo());
 
         return BaseResponse.defaultSuccess();
     }

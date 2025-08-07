@@ -20,5 +20,5 @@ public interface ServerManagementApiDoc {
     BaseResponse<ServerDetail> getServerDetail(Long serverId);
 
     @Operation(summary = "신규 서버 등록", description = "요청한 정보를 기반으로 신규 서버를 저장한다.")
-    BaseResponse<String> addNewServer(CreateServerRequest createServerRequest);
+    BaseResponse<String> addNewServer(@Parameter(hidden = true) UserInfoPrincipal principal, CreateServerRequest createServerRequest);
 }
