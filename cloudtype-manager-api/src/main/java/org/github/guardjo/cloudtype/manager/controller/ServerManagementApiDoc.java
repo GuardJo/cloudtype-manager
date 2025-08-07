@@ -17,7 +17,7 @@ public interface ServerManagementApiDoc {
     BaseResponse<List<ServerSummary>> getServers(@Parameter(hidden = true) UserInfoPrincipal principal);
 
     @Operation(summary = "특정 서버의 상세 정보 조회", description = "주어진 식별키에 대한 서버 상세 정보를 반환한다.")
-    BaseResponse<ServerDetail> getServerDetail(Long serverId);
+    BaseResponse<ServerDetail> getServerDetail(@Parameter(hidden = true) UserInfoPrincipal principal, Long serverId);
 
     @Operation(summary = "신규 서버 등록", description = "요청한 정보를 기반으로 신규 서버를 저장한다.")
     BaseResponse<String> addNewServer(@Parameter(hidden = true) UserInfoPrincipal principal, CreateServerRequest createServerRequest);
