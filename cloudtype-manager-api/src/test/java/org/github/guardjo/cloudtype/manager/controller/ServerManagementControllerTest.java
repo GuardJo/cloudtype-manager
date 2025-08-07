@@ -102,7 +102,11 @@ class ServerManagementControllerTest {
                 .andDo(print())
                 .andExpect(status().is(expectedStatusCode));
 
-        then(serverManagementService).should(atLeast(0)).addServer(eq(createServerRequest), eq(TEST_USER_DETAILS.getUserInfo()));
+        if (expectedStatusCode == HttpStatus.OK.value()) {
+            then(serverManagementService).should().addServer(eq(createServerRequest), eq(TEST_USER_DETAILS.getUserInfo()));
+        } else {
+            then(serverManagementService).should(never()).addServer(eq(createServerRequest), eq(TEST_USER_DETAILS.getUserInfo()));
+        }
     }
 
     @DisplayName("POST : /api/v1/servers -> Conflict Error")

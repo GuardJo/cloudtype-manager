@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
@@ -48,12 +49,8 @@ public class ServerManagementController implements ServerManagementApiDoc {
 
     @PostMapping
     @Override
-    public BaseResponse<String> addNewServer(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestBody CreateServerRequest createServerRequest) {
+    public BaseResponse<String> addNewServer(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestBody @Valid CreateServerRequest createServerRequest) {
         log.info("POST : /api/v1/servers, username = {}", principal.getUsername());
-
-        if (!createServerRequest.isValid()) {
-            throw new IllegalArgumentException("요청 데이터가 올바르지 않습니다.");
-        }
 
         serverManagementService.addServer(createServerRequest, principal.getUserInfo());
 
