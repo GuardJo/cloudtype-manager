@@ -3,9 +3,12 @@ package org.github.guardjo.cloudtype.manager.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
+import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +19,7 @@ import java.util.List;
 @Slf4j
 public class ServerManagementServiceImpl implements ServerManagementService {
     private final ServerInfoEntityRepository serverInfoRepository;
+    private final UserInfoEntityRepository userInfoRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -29,5 +33,32 @@ public class ServerManagementServiceImpl implements ServerManagementService {
         return serverInfoEntities.stream()
                 .map(ServerSummary::of)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void addServer(CreateServerRequest createRequest, UserInfo userInfo) {
+        log.debug("Add new server, serverName = {}, username = {}", createRequest.serverName(), userInfo.id());
+
+        ServerInfoEntity newServer = generateServerInfoEntity(createRequest, userInfo);
+
+        newServer = serverInfoRepository.save(newServer);
+
+        log.debug("Added new servere, serverId = {}", newServer.getId());
+    }
+
+    /*
+    신규 ServerInfo Entity 인스턴스 생성
+     */
+    private ServerInfoEntity generateServerInfoEntity(CreateServerRequest createServerRequest, UserInfo userInfo) {
+        UserInfoEntity userInfoEntity = userInfoRepository.getReferenceById(userInfo.id());
+
+        return ServerInfoEntity.builder()
+                .serverName(createServerRequest.serverName())
+                .hostingUrl(createServerRequest.serverUrl())
+                .healthCheckUrl(createServerRequest.serverUrl())
+                .managementUrl(createServerRequest.managementUrl())
+                .userInfo(userInfoEntity)
+                .build();
     }
 }
