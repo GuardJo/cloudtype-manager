@@ -60,4 +60,16 @@ class ServerInfoEntityRepositoryTest {
 
         assertThat(actual).isEqualTo(serverInfos);
     }
+
+    @DisplayName("특정 계정의 특정 server_info 조회")
+    @Test
+    void test_findByIdAndUserInfo_Username() {
+        ServerInfoEntity expected = serverInfos.get(0);
+        Long serverId = expected.getId();
+        String userInfoId = expected.getUserInfo().getUsername();
+
+        ServerInfoEntity actual = serverInfoRepository.findByIdAndUserInfo_Username(serverId, userInfoId).orElseThrow();
+
+        assertThat(actual).isEqualTo(expected);
+    }
 }
