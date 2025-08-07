@@ -34,17 +34,12 @@ public class ServerManagementController implements ServerManagementApiDoc {
 
     @GetMapping("/{serverId}")
     @Override
-    public BaseResponse<ServerDetail> getServerDetail(@PathVariable("serverId") Long serverId) {
-        // TODO 기능 구현 예정
-        // 더미데이터 반환
-        ServerDetail mockData = new ServerDetail(
-                serverId,
-                "서버1",
-                true,
-                "https://naver.com",
-                "https://cloudtype.io");
+    public BaseResponse<ServerDetail> getServerDetail(@AuthenticationPrincipal UserInfoPrincipal principal, @PathVariable("serverId") Long serverId) {
+        log.info("GET : /api/v1/servers/{serverId}, username = {}, serverId = {}", principal.getUsername(), serverId);
 
-        return BaseResponse.of(HttpStatus.OK, mockData);
+        ServerDetail serverDetail = serverManagementService.getServerDetail(serverId, principal.getUserInfo());
+
+        return BaseResponse.of(HttpStatus.OK, serverDetail);
     }
 
     @PostMapping

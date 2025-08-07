@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.controller;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -29,6 +30,20 @@ public class BaseControllerAdvice extends ResponseEntityExceptionHandler {
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .status(HttpStatus.BAD_REQUEST.name())
                 .data("요청 데이터가 올바르지 않습니다.")
+                .build();
+    }
+
+    @ExceptionHandler({
+            EntityNotFoundException.class
+    })
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public BaseResponse<String> handleNotFound(Exception e) {
+        log.warn("Not Found Exception: {}", e.getMessage(), e);
+
+        return BaseResponse.<String>builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .status(HttpStatus.NOT_FOUND.name())
+                .data(e.getMessage())
                 .build();
     }
 

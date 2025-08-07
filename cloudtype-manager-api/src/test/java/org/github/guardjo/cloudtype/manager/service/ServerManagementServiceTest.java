@@ -1,8 +1,10 @@
 package org.github.guardjo.cloudtype.manager.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
+import org.github.guardjo.cloudtype.manager.model.vo.ServerDetail;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
@@ -17,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -86,5 +89,35 @@ class ServerManagementServiceTest {
 
         then(userInfoRepository).should().getReferenceById(eq(testUser.id()));
         then(serverInfoRepository).should().save(any(ServerInfoEntity.class));
+    }
+
+    @DisplayName("서버 상세 정보 조회")
+    @Test
+    void test_getServerDetail() {
+        String username = TEST_USER.getUsername();
+        Long serverId = 1L;
+        ServerInfoEntity serverInfoEntity = TestDataGenerator.serverInfoEntity(serverId, "Test Server", TEST_USER);
+        ServerDetail expected = ServerDetail.from(serverInfoEntity);
+
+        given(serverInfoRepository.findByIdAndUserInfo_Username(eq(serverId), eq(username))).willReturn(Optional.of(serverInfoEntity));
+
+        ServerDetail actual = serverManagementService.getServerDetail(serverId, UserInfo.from(TEST_USER));
+        assertThat(actual).isEqualTo(expected);
+
+        then(serverInfoRepository).should().findByIdAndUserInfo_Username(eq(serverId), eq(username));
+    }
+
+    @DisplayName("서버 상세 정보 조회 -> 조회 실패")
+    @Test
+    void test_getServerDetail_not_found_exception() {
+        String username = TEST_USER.getUsername();
+        Long serverId = 1L;
+
+        given(serverInfoRepository.findByIdAndUserInfo_Username(eq(serverId), eq(username))).willReturn(Optional.empty());
+
+        assertThatCode(() -> serverManagementService.getServerDetail(serverId, UserInfo.from(TEST_USER)))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        then(serverInfoRepository).should().findByIdAndUserInfo_Username(eq(serverId), eq(username));
     }
 }
