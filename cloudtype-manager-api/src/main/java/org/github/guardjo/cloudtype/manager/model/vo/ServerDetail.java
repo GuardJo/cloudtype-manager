@@ -1,6 +1,7 @@
 package org.github.guardjo.cloudtype.manager.model.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 
 /* 서버 상세 정보 VO */
 public record ServerDetail(
@@ -19,4 +20,13 @@ public record ServerDetail(
         @Schema(description = "관리 화면 URL", example = "https://cloudtype.io")
         String managementUrl
 ) {
+    public static ServerDetail from(ServerInfoEntity entity) {
+        return new ServerDetail(
+                entity.getId(),
+                entity.getServerName(),
+                entity.isActivate(),
+                entity.getHostingUrl(),
+                entity.getManagementUrl()
+        );
+    }
 }

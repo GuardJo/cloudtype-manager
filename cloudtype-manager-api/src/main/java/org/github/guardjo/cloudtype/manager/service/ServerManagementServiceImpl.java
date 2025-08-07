@@ -1,10 +1,12 @@
 package org.github.guardjo.cloudtype.manager.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
+import org.github.guardjo.cloudtype.manager.model.vo.ServerDetail;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
@@ -45,6 +47,16 @@ public class ServerManagementServiceImpl implements ServerManagementService {
         newServer = serverInfoRepository.save(newServer);
 
         log.debug("Added new servere, serverId = {}", newServer.getId());
+    }
+
+    @Override
+    public ServerDetail getServerDetail(Long serverId, UserInfo userInfo) {
+        log.debug("Find server detail, serverId = {}, username = {}", serverId, userInfo.id());
+
+        ServerInfoEntity serverInfoEntity = serverInfoRepository.findByIdAndUserInfo_Username(serverId, userInfo.id())
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Not Found ServerInfoEntity, serverId = %d, username = %s ", serverId, userInfo.id())));
+
+        return ServerDetail.from(serverInfoEntity);
     }
 
     /*
