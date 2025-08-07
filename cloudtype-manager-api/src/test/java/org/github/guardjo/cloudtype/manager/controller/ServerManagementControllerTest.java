@@ -143,7 +143,7 @@ class ServerManagementControllerTest {
 
         given(serverManagementService.getServerDetail(eq(serverId), eq(TEST_USER_DETAILS.getUserInfo()))).willReturn(expected);
 
-        String response = mockMvc.perform(get("/api/v1/servers/" + serverId)
+        String response = mockMvc.perform(get("/api/v1/servers/{serverId}", serverId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(user(TEST_USER_DETAILS)))
                 .andDo(print())
@@ -170,7 +170,7 @@ class ServerManagementControllerTest {
 
         given(serverManagementService.getServerDetail(eq(serverId), eq(TEST_USER_DETAILS.getUserInfo()))).willThrow(EntityNotFoundException.class);
 
-        mockMvc.perform(get("/api/v1/servers/" + serverId)
+        mockMvc.perform(get("/api/v1/servers/{serverId}", serverId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(user(TEST_USER_DETAILS)))
                 .andDo(print())

@@ -50,11 +50,12 @@ public class ServerManagementServiceImpl implements ServerManagementService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ServerDetail getServerDetail(Long serverId, UserInfo userInfo) {
         log.debug("Find server detail, serverId = {}, username = {}", serverId, userInfo.id());
 
         ServerInfoEntity serverInfoEntity = serverInfoRepository.findByIdAndUserInfo_Username(serverId, userInfo.id())
-                .orElseThrow(() -> new EntityNotFoundException(String.format("Not Found ServerInfoEntity, serverId = %d, username = %s ", serverId, userInfo.id())));
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Not Found ServerInfoEntity, serverId = %d, username = %s", serverId, userInfo.id())));
 
         return ServerDetail.from(serverInfoEntity);
     }
