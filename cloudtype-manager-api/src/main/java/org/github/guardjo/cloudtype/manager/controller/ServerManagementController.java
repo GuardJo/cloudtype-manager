@@ -24,7 +24,7 @@ public class ServerManagementController implements ServerManagementApiDoc {
     @GetMapping
     @Override
     public BaseResponse<List<ServerSummary>> getServers(@AuthenticationPrincipal UserInfoPrincipal principal) {
-        log.debug("GET : /api/v1/servers, username = {}", principal.getUsername());
+        log.info("GET : /api/v1/servers, username = {}", principal.getUsername());
 
         List<ServerSummary> serverSummaries = serverManagementService.getServerSummaries(principal.getUserInfo());
 
@@ -48,8 +48,14 @@ public class ServerManagementController implements ServerManagementApiDoc {
 
     @PostMapping
     @Override
-    public BaseResponse<String> addNewServer(@RequestBody CreateServerRequest createServerRequest) {
-        // TODO 기능 구현 예정
+    public BaseResponse<String> addNewServer(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestBody CreateServerRequest createServerRequest) {
+        log.info("POST : /api/v1/servers, username = {}", principal.getUsername());
+
+        if (!createServerRequest.isValid()) {
+            throw new IllegalArgumentException("요청 데이터가 올바르지 않습니다.");
+        }
+
+        serverManagementService.addServer(createServerRequest, principal.getUserInfo());
 
         return BaseResponse.defaultSuccess();
     }
