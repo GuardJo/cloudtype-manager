@@ -3,7 +3,7 @@ import {MetadataRoute} from "next";
 export default function manifest(): MetadataRoute.Manifest {
     return {
         name: 'Cloudtype Manager',
-        short_name: 'Cloudtype Manager',
+        short_name: 'Cloudtype',
         description: 'Cloudtype Management System',
         theme_color: '#314158',
         background_color: '#314158',
