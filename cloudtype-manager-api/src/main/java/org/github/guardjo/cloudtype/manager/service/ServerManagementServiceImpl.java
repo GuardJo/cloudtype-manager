@@ -11,6 +11,7 @@ import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,6 +59,18 @@ public class ServerManagementServiceImpl implements ServerManagementService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Not Found ServerInfoEntity, serverId = %d, username = %s", serverId, userInfo.id())));
 
         return ServerDetail.from(serverInfoEntity);
+    }
+
+    @Override
+    @Transactional
+    @Scheduled(fixedDelay = 6_000L, initialDelay = 10_000L)
+    public void updateAllServerStatus() {
+        // TODO 기능 구현 예정
+        log.debug("Updating all server status.");
+
+        long updatedCount = 99L;
+
+        log.info("Updated all server status, updateResult = {}", updatedCount);
     }
 
     /*

@@ -32,4 +32,9 @@ public interface ServerManagementService {
      * @return server 상세 정보
      */
     ServerDetail getServerDetail(Long serverId, UserInfo userInfo);
+
+    /**
+     * 현 시점 기준 전체 관리 서버들에 대한 활성 상태를 최신화 한다.
+     */
+    void updateAllServerStatus();
 }
