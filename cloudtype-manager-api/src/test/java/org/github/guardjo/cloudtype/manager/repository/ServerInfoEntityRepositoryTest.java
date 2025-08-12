@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.repository;
 
+import jakarta.persistence.EntityManager;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.util.TestDataGenerator;
@@ -25,6 +26,9 @@ class ServerInfoEntityRepositoryTest {
 
     @Autowired
     private UserInfoEntityRepository userInfoEntityRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
@@ -71,5 +75,26 @@ class ServerInfoEntityRepositoryTest {
         ServerInfoEntity actual = serverInfoRepository.findByIdAndUserInfo_Username(serverId, userInfoId).orElseThrow();
 
         assertThat(actual).isEqualTo(expected);
+    }
+
+    @DisplayName("특정 서버들에 대한 활성 상태 갱신")
+    @Test
+    void test_updateActivateStatus() {
+        List<Long> activateServerIds = serverInfos.stream()
+                .filter((item) -> item.getId() < 3)
+                .map(ServerInfoEntity::getId)
+                .toList();
+
+        long updateResult = serverInfoRepository.updateActivateStatus(activateServerIds, List.of());
+        entityManager.flush();
+        entityManager.clear();
+
+        List<ServerInfoEntity> serverInfoEntities = serverInfoRepository.findAll();
+
+        assertThat(serverInfoEntities).isEqualTo(serverInfos);
+        assertThat(updateResult).isEqualTo(activateServerIds.size());
+        assertThat(serverInfoEntities.stream()
+                .filter(ServerInfoEntity::isActivate)
+                .count()).isEqualTo(activateServerIds.size());
     }
 }
