@@ -1,6 +1,7 @@
 package org.github.guardjo.cloudtype.manager.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -15,6 +16,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         this.healthCheckClient = restClientBuilder.build();
     }
 
+    @Async("healthCheckExecutor")
     @Override
     public CompletableFuture<Boolean> isServerActive(String healthCheckUrl) {
         log.debug("checking server status, url = {}", healthCheckUrl);
