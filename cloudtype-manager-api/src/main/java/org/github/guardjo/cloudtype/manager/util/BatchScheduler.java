@@ -20,7 +20,7 @@ public class BatchScheduler {
     private final JobLauncher jobLauncher;
     private final Job updateAllServerStatusJob;
 
-    @Scheduled(initialDelay = 10_000L, fixedDelay = 6_000L)
+    @Scheduled(initialDelay = 10_000L, fixedDelay = 60_000L)
     public void runUpdateAllServerStatusJob() throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
         log.info("Running updateAllServerStatusJob");
 
