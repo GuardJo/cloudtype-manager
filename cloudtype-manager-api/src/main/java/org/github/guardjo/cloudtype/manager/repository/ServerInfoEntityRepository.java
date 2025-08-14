@@ -1,12 +1,13 @@
 package org.github.guardjo.cloudtype.manager.repository;
 
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
+import org.github.guardjo.cloudtype.manager.repository.querydsl.ServerInfoQueryRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ServerInfoEntityRepository extends JpaRepository<ServerInfoEntity, Long> {
+public interface ServerInfoEntityRepository extends JpaRepository<ServerInfoEntity, Long>, ServerInfoQueryRepository {
     /**
      * 특정 계정 식별키와 연관된 server_info Entity 목록을 반환한다.
      *

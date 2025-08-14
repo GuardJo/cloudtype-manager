@@ -24,6 +24,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  batch:
+    jdbc:
+      initialize-schema: never
 
 jwt:
   secret: ${JWT_TOKEN_SECRET}

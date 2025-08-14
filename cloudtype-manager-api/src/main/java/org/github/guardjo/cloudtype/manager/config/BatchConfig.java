@@ -1,0 +1,100 @@
+package org.github.guardjo.cloudtype.manager.config;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.vo.HealthCheckResult;
+import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
+import org.github.guardjo.cloudtype.manager.service.HealthCheckService;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Sort;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@Configuration
+@EnableBatchProcessing
+@RequiredArgsConstructor
+@Slf4j
+public class BatchConfig {
+    private final static int CHUNK_SIZE = 1_000;
+
+    private final JobRepository jobRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final HealthCheckService healthCheckService;
+    private final ServerInfoEntityRepository serverInfoRepository;
+
+    @Bean
+    public Job updateAllServerStatusJob() {
+        return new JobBuilder("updateAllServerStatusJob", jobRepository)
+                .start(updateAllServerStatusStep())
+                .build();
+    }
+
+    @Bean
+    public Step updateAllServerStatusStep() {
+        return new StepBuilder("updateAllServerStatusStep", jobRepository)
+                .<ServerInfoEntity, HealthCheckResult>chunk(CHUNK_SIZE, transactionManager)
+                .reader(serverInfoItemReader())
+                .processor(serverInfoItemProcessor())
+                .writer(serverInfoItemWriter())
+                .build();
+    }
+
+    @Bean
+    public ItemReader<ServerInfoEntity> serverInfoItemReader() {
+        return new RepositoryItemReaderBuilder<ServerInfoEntity>()
+                .name("serverInfoItemReader")
+                .repository(serverInfoRepository)
+                .methodName("findAll")
+                .pageSize(CHUNK_SIZE)
+                .sorts(Map.of("id", Sort.Direction.ASC))
+                .build();
+    }
+
+    @Bean
+    public ItemProcessor<ServerInfoEntity, HealthCheckResult> serverInfoItemProcessor() {
+        return (server) -> {
+            boolean newStatus = healthCheckService.isServerActive(server.getHealthCheckUrl()).join();
+
+            if (server.isActivate() != newStatus) {
+                return new HealthCheckResult(server.getId(), newStatus);
+            }
+
+            return null;
+        };
+    }
+
+    @Bean
+    public ItemWriter<HealthCheckResult> serverInfoItemWriter() {
+        return (results) -> {
+            List<Long> activateIds = new ArrayList<>();
+            List<Long> deactivateIds = new ArrayList<>();
+
+            for (HealthCheckResult result : results) {
+                if (result.activate()) {
+                    activateIds.add(result.serverId());
+                } else {
+                    deactivateIds.add(result.serverId());
+                }
+            }
+
+            long updateResult = serverInfoRepository.updateActivateStatus(activateIds, deactivateIds);
+
+            log.info("Updated server_info activate fields, updateCount = {}", updateResult);
+        };
+    }
+}
