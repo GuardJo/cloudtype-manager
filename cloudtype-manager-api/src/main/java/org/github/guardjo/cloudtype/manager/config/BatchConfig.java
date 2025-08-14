@@ -21,9 +21,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableBatchProcessing
@@ -81,16 +81,12 @@ public class BatchConfig {
     @Bean
     public ItemWriter<HealthCheckResult> serverInfoItemWriter() {
         return (results) -> {
-            List<Long> activateIds = new ArrayList<>();
-            List<Long> deactivateIds = new ArrayList<>();
+            Map<Boolean, List<Long>> partitionedIds = results.getItems().stream()
+                    .collect(Collectors.partitioningBy(HealthCheckResult::activate,
+                            Collectors.mapping(HealthCheckResult::serverId, Collectors.toList())));
 
-            for (HealthCheckResult result : results) {
-                if (result.activate()) {
-                    activateIds.add(result.serverId());
-                } else {
-                    deactivateIds.add(result.serverId());
-                }
-            }
+            List<Long> activateIds = partitionedIds.getOrDefault(true, List.of());
+            List<Long> deactivateIds = partitionedIds.getOrDefault(false, List.of());
 
             long updateResult = serverInfoRepository.updateActivateStatus(activateIds, deactivateIds);
 
