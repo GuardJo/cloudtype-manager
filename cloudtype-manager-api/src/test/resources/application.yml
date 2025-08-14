@@ -16,8 +16,20 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+  batch:
+    jdbc:
+      initialize-schema: always
+
 
 jwt:
   secret: "this-is-just-super-long-secret-key-for-local-test-and-it-will-be-replaced-in-production-env"
   access-token-expiration-millis: 1_800_000 # 30 minutes
   refresh-token-expiration-millis: 604_800_000 # 7 days
+
+logging:
+  level:
+    org.github.guardjo.cloudtype.manager: debug

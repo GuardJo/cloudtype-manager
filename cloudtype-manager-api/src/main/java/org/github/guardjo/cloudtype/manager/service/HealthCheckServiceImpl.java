@@ -24,9 +24,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         return healthCheckClient.get()
                 .uri(healthCheckUrl)
                 .exchange((request, response) -> {
-                    if (response.getStatusCode().is2xxSuccessful()) {
+                    if (response.getStatusCode().is2xxSuccessful() || response.getStatusCode().is3xxRedirection()) {
+                        log.debug("serverStatus is OK");
                         return CompletableFuture.completedFuture(true);
                     } else {
+                        log.warn("serverStatus is {}", response.getStatusCode());
                         return CompletableFuture.completedFuture(false);
                     }
                 });
