@@ -12,17 +12,22 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.integration.async.AsyncItemProcessor;
+import org.springframework.batch.integration.async.AsyncItemWriter;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -36,6 +41,7 @@ public class BatchConfig {
     private final PlatformTransactionManager transactionManager;
     private final HealthCheckService healthCheckService;
     private final ServerInfoEntityRepository serverInfoRepository;
+    private final Executor healthCheckExecutor;
 
     @Bean
     public Job updateAllServerStatusJob() {
@@ -47,10 +53,10 @@ public class BatchConfig {
     @Bean
     public Step updateAllServerStatusStep() {
         return new StepBuilder("updateAllServerStatusStep", jobRepository)
-                .<ServerInfoEntity, HealthCheckResult>chunk(CHUNK_SIZE, transactionManager)
+                .<ServerInfoEntity, Future<HealthCheckResult>>chunk(CHUNK_SIZE, transactionManager)
                 .reader(serverInfoItemReader())
-                .processor(serverInfoItemProcessor())
-                .writer(serverInfoItemWriter())
+                .processor(serverInfoAsyncItemProcessor())
+                .writer(serverInfoAsyncItemWriter())
                 .build();
     }
 
@@ -66,6 +72,15 @@ public class BatchConfig {
     }
 
     @Bean
+    public AsyncItemProcessor<ServerInfoEntity, HealthCheckResult> serverInfoAsyncItemProcessor() {
+        AsyncItemProcessor<ServerInfoEntity, HealthCheckResult> asyncItemProcessor = new AsyncItemProcessor<>();
+        asyncItemProcessor.setDelegate(serverInfoItemProcessor());
+        asyncItemProcessor.setTaskExecutor((TaskExecutor) healthCheckExecutor);
+
+        return asyncItemProcessor;
+    }
+
+    @Bean
     public ItemProcessor<ServerInfoEntity, HealthCheckResult> serverInfoItemProcessor() {
         return (server) -> {
             boolean newStatus = healthCheckService.isServerActive(server.getHealthCheckUrl()).join();
@@ -76,6 +91,14 @@ public class BatchConfig {
 
             return null;
         };
+    }
+
+    @Bean
+    public AsyncItemWriter<HealthCheckResult> serverInfoAsyncItemWriter() {
+        AsyncItemWriter<HealthCheckResult> serverInfoAsyncItemWriter = new AsyncItemWriter<>();
+        serverInfoAsyncItemWriter.setDelegate(serverInfoItemWriter());
+
+        return serverInfoAsyncItemWriter;
     }
 
     @Bean
