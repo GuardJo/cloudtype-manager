@@ -26,6 +26,19 @@ export const handlers = [
     http.get(`${mockApiServerUrl}/api/v1/servers/:id`, ({params}) => {
         const serverId = params.id;
 
+        if (serverId === '999') {
+            const notFoundData: BaseResponse<string> = {
+                statusCode: 404,
+                status: 'NotFound',
+                data: 'NotFound'
+            }
+
+            return new HttpResponse(JSON.stringify(notFoundData), {
+                status: 404,
+                statusText: 'NotFound'
+            })
+        }
+
         const serverDetail: BaseResponse<ServerDetail> = {
             statusCode: 200,
             status: 'OK',

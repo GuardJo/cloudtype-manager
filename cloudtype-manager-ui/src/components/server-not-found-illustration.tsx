@@ -15,7 +15,7 @@ export default function ServerNotFoundIllustration() {
                     <span className='text-white text-xs'>x</span>
                 </div>
 
-                <div className='absolute -bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-1'>
+                <div className='absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1'>
                     <div className='w-2 h-2 bg-slate-600 rounded-full animate-pulse'/>
                     <div className='w-2 h-2 bg-slate-600 rounded-full animate-pulse' style={{animationDelay: '200ms'}}/>
                     <div className='w-2 h-2 bg-slate-600 rounded-full animate-pulse' style={{animationDelay: '400ms'}}/>
