@@ -16,9 +16,17 @@ export const getAuthHeaders = () => {
 export const validateResponse = (response: Response) => {
     const httpStatus = response.status;
 
-    if (httpStatus === 401) {
-        window.location.href = '/login'
+    if (httpStatus >= 300) {
+        if (httpStatus === 401) {
+            window.location.href = '/login'
+        } else if (httpStatus === 404) {
+            window.location.href = '/not-found'
+        } else {
+            window.location.href = '/error'
+        }
+
+        throw new Error(`failed API request, statusCode = ${httpStatus}`)
     }
-    
+
     return response.json()
 }
