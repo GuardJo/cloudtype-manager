@@ -26,7 +26,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -41,7 +40,7 @@ public class BatchConfig {
     private final PlatformTransactionManager transactionManager;
     private final HealthCheckService healthCheckService;
     private final ServerInfoEntityRepository serverInfoRepository;
-    private final Executor healthCheckExecutor;
+    private final TaskExecutor healthCheckExecutor;
 
     @Bean
     public Job updateAllServerStatusJob() {
@@ -75,7 +74,7 @@ public class BatchConfig {
     public AsyncItemProcessor<ServerInfoEntity, HealthCheckResult> serverInfoAsyncItemProcessor() {
         AsyncItemProcessor<ServerInfoEntity, HealthCheckResult> asyncItemProcessor = new AsyncItemProcessor<>();
         asyncItemProcessor.setDelegate(serverInfoItemProcessor());
-        asyncItemProcessor.setTaskExecutor((TaskExecutor) healthCheckExecutor);
+        asyncItemProcessor.setTaskExecutor(healthCheckExecutor);
 
         return asyncItemProcessor;
     }

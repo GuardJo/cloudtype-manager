@@ -25,7 +25,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.atMost;
+import static org.mockito.Mockito.times;
 
 @SpringBatchTest
 @SpringBootTest
@@ -82,6 +82,6 @@ class BatchSchedulerTest {
 
         assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
 
-        then(healthCheckService).should(atMost(SERVER_INFOS.size())).isServerActive(anyString());
+        then(healthCheckService).should(times(SERVER_INFOS.size())).isServerActive(anyString());
     }
 }
