@@ -24,6 +24,8 @@ export const validateResponse = (response: Response) => {
         } else {
             window.location.href = '/error'
         }
+
+        throw new Error(`failed API request, statusCode = ${httpStatus}`)
     }
 
     return response.json()
