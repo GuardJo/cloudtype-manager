@@ -37,6 +37,8 @@ export const handlers = [
                 status: 404,
                 statusText: 'NotFound'
             })
+        } else if (serverId === 'error') {
+            throw new Error('Test Error')
         }
 
         const serverDetail: BaseResponse<ServerDetail> = {
