@@ -10,7 +10,7 @@ export default function ServerNotFound() {
     const router = useRouter()
 
     return (
-        <div className='pt-24 pb-20 flex flex-col items-center justify-center px-6 text-white'>
+        <div className='min-h-screen pt-20 pb-20 flex flex-col items-center justify-center px-6 text-white'>
             {/* Server Not Found Illustration */}
             <ServerNotFoundIllustration/>
 
