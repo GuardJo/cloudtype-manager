@@ -32,7 +32,7 @@ erDiagram
 string username pk
     string password "not null"
 string name "not null"
-timestamp createAt "not null"
+timestamp createdAt "not null"
 timestamp modifiedAt "not null"
 }
 
@@ -43,10 +43,19 @@ bool activate "not null"
 string hosting_url
 string management_url "not null"
 string health_check_url "not null"
-timestamp createAt "not null"
+timestamp createdAt "not null"
+timestamp modifiedAt "not null"
+string user_id fk "user_info"
+}
+
+refresh_token {
+bigint id pk "auto increment"
+string token uk "not null"
+timestamp createdAt "not null"
 timestamp modifiedAt "not null"
 string user_id fk "user_info"
 }
 
 user_info ||--o{ server_info: "user_id"
+user_info o|--|| refresh_token: "user_id"
 ```
