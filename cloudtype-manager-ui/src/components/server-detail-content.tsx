@@ -5,29 +5,28 @@ import ServerStatusBadge from "@/components/server-status-badge";
 import ServerActionsArea from "@/components/server-actions-area";
 import {useQuery} from "@tanstack/react-query";
 import {getServerDetail} from "@/lib/server-api-handler";
-import {ServerDetail} from "@/lib/models";
 import {notFound} from "next/navigation";
-import {useEffect, useState} from "react";
 
 /* 서버 상세 정보 컨텐츠 */
 export default function ServerDetailContent({serverId}: ServerDetailContentProps) {
-    const [serverDetail, setServerDetail] = useState<ServerDetail | undefined>()
     const {data, isLoading} = useQuery({
         queryKey: ['getServerDetail', serverId],
         queryFn: () => getServerDetail(serverId)
     })
 
-    useEffect(() => {
-        if (!isLoading) {
-            if (data?.statusCode === 200) {
-                setServerDetail(data?.data)
-            } else if (data?.statusCode === 404) {
-                notFound()
-            } else {
-                throw new Error('Failed get serverDetail')
-            }
-        }
-    }, [isLoading, data]);
+    if (isLoading) {
+        return null
+    }
+
+    if (data?.statusCode === 404) {
+        notFound()
+    }
+
+    if (!data || data?.statusCode !== 200) {
+        throw new Error('Failed to get serverDetail')
+    }
+
+    const serverDetail = data.data
 
     return (
         <div className='pt-16 pb-6'>

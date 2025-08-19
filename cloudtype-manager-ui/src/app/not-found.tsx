@@ -3,6 +3,7 @@
 import {ArrowLeft, Home, Search} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {useRouter} from "next/navigation";
+import Link from "next/link";
 
 /* 전역 404 페이지 컴포넌트 */
 export default function NotFound() {
@@ -52,7 +53,7 @@ export default function NotFound() {
                                    router.push('/servers')
                                }
                            }}
-                           className='w-full bg-slate-700 border border-slate-600 rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transtion-all duration-200'/>
+                           className='w-full bg-slate-700 border border-slate-600 rounded-xl pl-12 pr-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all duration-200'/>
                 </div>
             </div>
 
@@ -67,7 +68,7 @@ export default function NotFound() {
                 </Button>
                 <Button
                     onClick={() => router.push('/')}
-                    className='flex-1 bg-slate-200 text-slate-800 hover:bg-slate-100 font-medium py-3 rounded-xl transition-all duration-200 hover:scale-105 active:sacle-95'>
+                    className='flex-1 bg-slate-200 text-slate-800 hover:bg-slate-100 font-medium py-3 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95'>
                     <Home className='w-4 h-4 mr-2'/>
                     Go Home
                 </Button>
@@ -77,18 +78,18 @@ export default function NotFound() {
             <div className='mt-8 text-center animate-fade-in-up' style={{animationDelay: '800ms'}}>
                 <p className='text-slate-500 text-sm mb-4'>Quick Links:</p>
                 <div className='flex flex-wrap justify-center gap-4'>
-                    <button className='text-slate-400 hover:text-white text-sm underline transtion-colors'
-                            onClick={() => router.push('/servers')}>
+                    <Link href='/servers'
+                          className='text-slate-400 hover:text-white text-sm underline transition-colors'>
                         View Servers
-                    </button>
-                    <button className='text-slate-400 hover:text-white text-sm underline transtion-colors'
-                            onClick={() => router.push('/servers/add')}>
+                    </Link>
+                    <Link href='/servers/add'
+                          className='text-slate-400 hover:text-white text-sm underline transition-colors'>
                         Add Servers
-                    </button>
-                    <button className='text-slate-400 hover:text-white text-sm underline transtion-colors'
-                            onClick={() => router.push('/settings')}>
+                    </Link>
+                    <Link href='/settings'
+                          className='text-slate-400 hover:text-white text-sm underline transition-colors'>
                         Settings
-                    </button>
+                    </Link>
                 </div>
             </div>
         </div>

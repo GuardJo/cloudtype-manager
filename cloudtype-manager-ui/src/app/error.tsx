@@ -4,6 +4,7 @@ import {useRouter} from "next/navigation";
 import {useEffect} from "react";
 import {AlertTriangle, Bug, Home, RefreshCw} from "lucide-react";
 import {Button} from "@/components/ui/button";
+import Link from "next/link";
 
 /* 루트 경로 하위에서 발샌한 예외 처리 페이지 */
 export default function Error({error, reset}: ErrorProps) {
@@ -74,12 +75,12 @@ export default function Error({error, reset}: ErrorProps) {
             <div className='flex flex-col sm:flex-row gap-4 w-full max-w-md animate-fade-in-up'
                  style={{animationDelay: '600ms'}}>
                 <Button onClick={reset}
-                        className='flex-1 bg-slate-200 text-slate-800 hover:bg-slate-100 font-medium py-3 rounded-xl transition-all duration-200 hover:scale-105 active:sacle-95'>
+                        className='flex-1 bg-slate-200 text-slate-800 hover:bg-slate-100 font-medium py-3 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95'>
                     <RefreshCw className='w-4 h-4 mr-2'/>
                     Try Again
                 </Button>
                 <Button onClick={() => router.push('/')}
-                        className='flex-1 bg-slate-700 text-white border-slate-600 hover:bg-slate-600 font-medium py-3 rounded-xl transition-all duration-200 hover:sacle-105 active:scale-95'>
+                        className='flex-1 bg-slate-700 text-white border-slate-600 hover:bg-slate-600 font-medium py-3 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95'>
                     <Home className='w-4 h-4 mr-2'/>
                     Go Home
                 </Button>
@@ -88,12 +89,10 @@ export default function Error({error, reset}: ErrorProps) {
             {/* Help Text */}
             <div className='mt-8 text-center animate-fade-in-up' style={{animationDelay: '800ms'}}>
                 <p className='text-slate-500 text-sm mb-2'>이 문제가 지속되면 지원팀에 문의하세요.</p>
-                <button onClick={() => {
-                    alert("Github : https://github.com/GuardJo")
-                }}
-                        className='text-slate-400 hover:text-white text-sm underline transition-colors'>
+                <Link href='https://github.com/GuardJo' target='_blank'
+                      className='text-slate-400 hover:text-white text-sm underline transition-colors'>
                     Report this issue
-                </button>
+                </Link>
             </div>
         </div>
     )
