@@ -32,7 +32,7 @@ create table server_info
 create table refresh_token
 (
     id          bigint primary key    default nextval('refresh_token_id_seq'),
-    token       varchar(300) not null unique,
+    token       varchar(512) not null unique,
     user_id     varchar(100) not null,
     created_at  timestamp    not null default current_timestamp,
     modified_at timestamp    not null default current_timestamp,

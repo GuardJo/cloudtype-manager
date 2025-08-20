@@ -40,11 +40,12 @@ class RefreshTokenEntityRepositoryTest {
         REFRESH_TOKENS.clear();
     }
 
-    @DisplayName("특정 사용자에 대한 refresh_token Entity 조회")
+    @DisplayName("특정 token 값에 대한 refresh_token Entity 조회")
     @Test
-    void test_findByUserInfo_Username() {
+    void test_findByToken() {
         RefreshTokenEntity expected = REFRESH_TOKENS.get(0);
-        RefreshTokenEntity actual = refreshTokenEntityRepository.findByUserInfo_Username(TEST_USER.getUsername()).orElseThrow();
+        String token = expected.getToken();
+        RefreshTokenEntity actual = refreshTokenEntityRepository.findByToken(token).orElseThrow();
 
         assertThat(actual).isEqualTo(expected);
     }

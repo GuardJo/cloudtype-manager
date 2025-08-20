@@ -57,5 +57,5 @@ string user_id fk "user_info"
 }
 
 user_info ||--o{ server_info: "user_id"
-user_info o|--|| refresh_token: "user_id"
+user_info o|--|{ refresh_token: "user_id"
 ```
