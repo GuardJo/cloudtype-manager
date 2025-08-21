@@ -1,10 +1,15 @@
 import {type ClassValue, clsx} from "clsx"
 import {twMerge} from "tailwind-merge"
+import {BaseResponse} from "@/lib/models";
+import {refreshAuthToken} from "@/lib/auth-api-handler";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
+/**
+ * 인증 토큰 Header 반환
+ */
 export const getAuthHeaders = () => {
     const token = localStorage.getItem('authToken');
     return {
@@ -13,11 +18,17 @@ export const getAuthHeaders = () => {
     };
 };
 
-export const validateResponse = (response: Response) => {
+/**
+ * API 응답 데이터 검증
+ * @param response API 응답 데이터
+ * @param apiCaller API 요청 메소드
+ */
+export const validateResponse = async <T, P extends unknown[]>(response: Response, apiCaller: (...params: P) => Promise<BaseResponse<T>>, ...params: P): Promise<BaseResponse<T>> => {
     const httpStatus = response.status;
 
     if (httpStatus === 401) {
-        window.location.href = '/login'
+        await refreshAuthToken()
+        return apiCaller(...params)
     }
 
     return response.json()

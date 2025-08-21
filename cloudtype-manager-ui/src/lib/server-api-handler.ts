@@ -12,7 +12,7 @@ export async function getServers(): Promise<BaseResponse<ServerSummary[]>> {
         headers: getAuthHeaders(),
     });
 
-    return validateResponse(response);
+    return validateResponse(response, getServers);
 }
 
 /**
@@ -24,7 +24,7 @@ export async function getServerDetail(serverId: number): Promise<BaseResponse<Se
         headers: getAuthHeaders(),
     })
 
-    return validateResponse(response);
+    return validateResponse(response, getServerDetail, serverId);
 }
 
 /**
@@ -37,5 +37,5 @@ export async function addServer(addParams: ServerAddParams): Promise<BaseRespons
         body: JSON.stringify(addParams),
     })
 
-    return validateResponse(response);
+    return validateResponse(response, addServer, addParams);
 }
