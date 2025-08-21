@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
-import java.util.Objects;
 
 @Component
 @Slf4j
@@ -73,13 +72,13 @@ public class JwtTokenProvider {
 
         RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> {
-                    log.warn("Invalid JWT refresh-token, username = {}, token = {}", username, refreshToken);
-                    return new MalformedJwtException("Invalid JWT refresh-token");
+                    log.warn("The token information doesn't exist on the server., username = {}, token = {}", username, refreshToken);
+                    return new MalformedJwtException("The token information doesn't exist on the server.");
                 });
 
         if (!refreshTokenEntity.getUserInfo().getUsername().equals(username)) {
             log.warn("Incorrect refresh-token from user_info, username = {}", username);
-            throw new MalformedJwtException("Invalid JWT refresh-token");
+            throw new MalformedJwtException("User and token don't match");
         }
 
         String accessToken = generateToken(username, jwtProperties.getAccessTokenExpirationMillis());
@@ -127,12 +126,11 @@ public class JwtTokenProvider {
     private void saveNewToken(String token, String username) {
         log.debug("Creating refresh-token, username = {}", username);
 
-        UserInfoEntity userInfo = userInfoRepository.getReferenceById(username);
-
-        if (Objects.isNull(userInfo)) {
-            log.error("Not Found user_info, username = {}", username);
-            throw new EntityNotFoundException(String.format("Not found user_info, username = %s", username));
-        }
+        UserInfoEntity userInfo = userInfoRepository.findById(username)
+                .orElseThrow(() -> {
+                    log.error("Not Found user_info, username = {}", username);
+                    return new EntityNotFoundException(String.format("Not found user_info, username = %s", username));
+                });
 
         RefreshTokenEntity refreshToken = RefreshTokenEntity.builder()
                 .token(token)
