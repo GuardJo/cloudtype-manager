@@ -2,7 +2,7 @@
 
 import {Suspense, useEffect} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
-import {AUTH_REFRESH_TOKEN_KEY} from "@/lib/constants";
+import {AUTH_REFRESH_TOKEN_KEY, AUTH_TOKEN_KEY} from "@/lib/constants";
 
 function OAuthCallbackProgress() {
     const searchParams = useSearchParams();
@@ -12,7 +12,7 @@ function OAuthCallbackProgress() {
         const accessToken = searchParams.get('accessToken')
         const refreshToken = searchParams.get('refreshToken')
         if (accessToken) {
-            localStorage.setItem('authToken', accessToken);
+            localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
 
             if (refreshToken) {
                 localStorage.setItem(AUTH_REFRESH_TOKEN_KEY, refreshToken)
