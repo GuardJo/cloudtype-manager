@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.util;
 
+import org.github.guardjo.cloudtype.manager.model.domain.RefreshTokenEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 
@@ -29,6 +30,13 @@ public class TestDataGenerator {
                 .healthCheckUrl("https://google.com")
                 .hostingUrl("https://github.com")
                 .managementUrl("https://cloudtype.io")
+                .userInfo(userInfo)
+                .build();
+    }
+
+    public static RefreshTokenEntity refreshTokenEntity(String refreshToken, UserInfoEntity userInfo) {
+        return RefreshTokenEntity.builder()
+                .token(refreshToken)
                 .userInfo(userInfo)
                 .build();
     }
