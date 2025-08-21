@@ -35,6 +35,21 @@ export type ServerAddParams = {
 }
 
 /**
+ * access-token 재발급 요청
+ */
+export type AuthRefreshParams = {
+    refreshToken: string,
+}
+
+/**
+ * 인증 토큰 정보
+ */
+export type AuthTokenInfo = {
+    accessToken: string,
+    refreshToken: string,
+}
+
+/**
  * API 서버 기본 응답 구조
  */
 export type BaseResponse<T> = {

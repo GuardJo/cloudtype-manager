@@ -1,5 +1,6 @@
 import {http, HttpResponse} from "msw";
-import {BaseResponse, ServerDetail, ServerSummary} from "@/lib/models";
+import {AuthTokenInfo, BaseResponse, ServerDetail, ServerSummary} from "@/lib/models";
+import {AUTH_TOKEN_KEY} from "@/lib/constants";
 
 const mockApiServerUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
 
@@ -39,6 +40,21 @@ export const handlers = [
             })
         } else if (serverId === 'error') {
             throw new Error('Test Error')
+        } else if (serverId === 'token') {
+            const accessToken = localStorage.getItem(AUTH_TOKEN_KEY);
+
+            if (accessToken === null || accessToken !== 'accessToken22') {
+                const unauthorizedData: BaseResponse<string> = {
+                    statusCode: 401,
+                    status: 'Unauthorized',
+                    data: 'Unauthorized'
+                }
+
+                return new HttpResponse(JSON.stringify(unauthorizedData), {
+                    status: 401,
+                    statusText: 'Unauthorized'
+                })
+            }
         }
 
         const serverDetail: BaseResponse<ServerDetail> = {
@@ -63,5 +79,17 @@ export const handlers = [
         }
 
         return HttpResponse.json(successes);
+    }),
+    http.post(`${mockApiServerUrl}/api/v1/auth/refresh`, () => {
+        const authTokenInfo: BaseResponse<AuthTokenInfo> = {
+            statusCode: 200,
+            status: 'OK',
+            data: {
+                accessToken: 'accessToken22',
+                refreshToken: 'refreshToken22'
+            }
+        }
+
+        return HttpResponse.json(authTokenInfo);
     })
 ]
