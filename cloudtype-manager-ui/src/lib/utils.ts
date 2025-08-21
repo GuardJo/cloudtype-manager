@@ -2,6 +2,7 @@ import {type ClassValue, clsx} from "clsx"
 import {twMerge} from "tailwind-merge"
 import {BaseResponse} from "@/lib/models";
 import {refreshAuthToken} from "@/lib/auth-api-handler";
+import {AUTH_TOKEN_KEY} from "@/lib/constants";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
@@ -11,7 +12,7 @@ export function cn(...inputs: ClassValue[]) {
  * 인증 토큰 Header 반환
  */
 export const getAuthHeaders = () => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
     return {
         "Content-Type": "application/json",
         ...(token && {"Authorization": `Bearer ${token}`}),

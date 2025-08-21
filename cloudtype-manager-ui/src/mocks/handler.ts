@@ -1,5 +1,6 @@
 import {http, HttpResponse} from "msw";
 import {AuthTokenInfo, BaseResponse, ServerDetail, ServerSummary} from "@/lib/models";
+import {AUTH_TOKEN_KEY} from "@/lib/constants";
 
 const mockApiServerUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
 
@@ -40,7 +41,7 @@ export const handlers = [
         } else if (serverId === 'error') {
             throw new Error('Test Error')
         } else if (serverId === 'token') {
-            const accessToken = localStorage.getItem('authToken');
+            const accessToken = localStorage.getItem(AUTH_TOKEN_KEY);
 
             if (accessToken === null || accessToken !== 'accessToken22') {
                 const unauthorizedData: BaseResponse<string> = {

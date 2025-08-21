@@ -2,6 +2,7 @@
 
 import {Suspense, useEffect} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
+import {AUTH_REFRESH_TOKEN_KEY} from "@/lib/constants";
 
 function OAuthCallbackProgress() {
     const searchParams = useSearchParams();
@@ -14,7 +15,7 @@ function OAuthCallbackProgress() {
             localStorage.setItem('authToken', accessToken);
 
             if (refreshToken) {
-                localStorage.setItem('authRefToken', refreshToken)
+                localStorage.setItem(AUTH_REFRESH_TOKEN_KEY, refreshToken)
             }
 
             router.replace('/servers');
