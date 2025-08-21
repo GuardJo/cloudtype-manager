@@ -2,17 +2,24 @@ package org.github.guardjo.cloudtype.manager.config.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.config.properties.JwtProperties;
-import org.github.guardjo.cloudtype.manager.service.RefreshTokenService;
+import org.github.guardjo.cloudtype.manager.model.domain.RefreshTokenEntity;
+import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.vo.AuthTokenInfo;
+import org.github.guardjo.cloudtype.manager.repository.RefreshTokenEntityRepository;
+import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.Objects;
 
 @Component
 @Slf4j
@@ -20,37 +27,67 @@ public class JwtTokenProvider {
     private final SecretKey secretKey;
     private final JwtProperties jwtProperties;
     private final UserDetailsService userDetailsService;
-    private final RefreshTokenService refreshTokenService;
+    private final UserInfoEntityRepository userInfoRepository;
+    private final RefreshTokenEntityRepository refreshTokenRepository;
 
-    public JwtTokenProvider(JwtProperties jwtProperties, UserDetailsService userDetailsService, RefreshTokenService refreshTokenService) {
+    public JwtTokenProvider(JwtProperties jwtProperties, UserDetailsService userDetailsService, UserInfoEntityRepository userInfoEntityRepository, RefreshTokenEntityRepository refreshTokenEntityRepository) {
         this.jwtProperties = jwtProperties;
         this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
         this.userDetailsService = userDetailsService;
-        this.refreshTokenService = refreshTokenService;
+        this.userInfoRepository = userInfoEntityRepository;
+        this.refreshTokenRepository = refreshTokenEntityRepository;
     }
 
     /**
-     * 인증 객체를 기반으로 JWT access-token을 생성 및 반환한다
+     * 인증 객체를 기반으로 JWT token을 생성 및 반환한다
+     * <hr/>
+     * <i>이 때 refresh_token의 경우, DB에 적재</i>
      *
      * @param authentication 인증 객체
-     * @return JWT 토큰 (access-token)
+     * @return JWT 토큰 (access-token & refresh-token)
      */
-    public String generateAccessToken(Authentication authentication) {
-        return generateToken(authentication, jwtProperties.getAccessTokenExpirationMillis());
+    @Transactional
+    public AuthTokenInfo generateAuthTokenInfo(Authentication authentication) {
+        String accessToken = generateToken(authentication.getName(), jwtProperties.getAccessTokenExpirationMillis());
+        String refreshToken = generateToken(authentication.getName(), jwtProperties.getRefreshTokenExpirationMillis());
+        saveNewToken(refreshToken, authentication.getName());
+
+        return new AuthTokenInfo(accessToken, refreshToken);
     }
 
     /**
-     * 인증 객체를 기반으로 JWT refresh-token을 생성 및 반환한다
+     * refresh_token을 기반으로 JWT token을 생성 및 반환한다
+     * <hr/>
+     * <i>이 때 refresh_token의 경우, DB에 적재</i>
      *
-     * @param authentication 인증 객체
-     * @return JWT 토큰 (refresh-token)
+     * @param refreshToken refresh_token
+     * @param username     사용자 식별키
+     * @return JWT 토큰 (access-token & refresh-token)
      */
-    public String generateRefreshToken(Authentication authentication) {
-        String token = generateToken(authentication, jwtProperties.getRefreshTokenExpirationMillis());
+    @Transactional
+    public AuthTokenInfo generateAuthTokenInfo(String refreshToken, String username) {
+        if (!validateToken(refreshToken)) {
+            log.error("Invalid JWT refresh-token, username = {}, token = {}", username, refreshToken);
+            throw new MalformedJwtException("Invalid JWT refresh-token");
+        }
 
-        refreshTokenService.saveNewToken(token, authentication.getName());
+        RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> {
+                    log.warn("Invalid JWT refresh-token, username = {}, token = {}", username, refreshToken);
+                    return new MalformedJwtException("Invalid JWT refresh-token");
+                });
 
-        return token;
+        if (!refreshTokenEntity.getUserInfo().getUsername().equals(username)) {
+            log.warn("Incorrect refresh-token from user_info, username = {}", username);
+            throw new MalformedJwtException("Invalid JWT refresh-token");
+        }
+
+        String accessToken = generateToken(username, jwtProperties.getAccessTokenExpirationMillis());
+        String newRefreshToken = generateToken(username, jwtProperties.getRefreshTokenExpirationMillis());
+
+        refreshTokenEntity.setToken(newRefreshToken);
+
+        return new AuthTokenInfo(accessToken, newRefreshToken);
     }
 
     /**
@@ -87,12 +124,32 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    private String generateToken(Authentication authentication, long expirationMillis) {
+    private void saveNewToken(String token, String username) {
+        log.debug("Creating refresh-token, username = {}", username);
+
+        UserInfoEntity userInfo = userInfoRepository.getReferenceById(username);
+
+        if (Objects.isNull(userInfo)) {
+            log.error("Not Found user_info, username = {}", username);
+            throw new EntityNotFoundException(String.format("Not found user_info, username = %s", username));
+        }
+
+        RefreshTokenEntity refreshToken = RefreshTokenEntity.builder()
+                .token(token)
+                .userInfo(userInfo)
+                .build();
+
+        refreshTokenRepository.save(refreshToken);
+
+        log.info("Saved refresh-token, username = {}", username);
+    }
+
+    private String generateToken(String username, long expirationMillis) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMillis);
 
         return Jwts.builder()
-                .setSubject(authentication.getName())
+                .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(secretKey, SignatureAlgorithm.HS512)
