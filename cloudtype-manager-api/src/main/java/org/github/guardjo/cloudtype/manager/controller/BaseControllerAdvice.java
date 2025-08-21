@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.controller;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
@@ -30,6 +31,20 @@ public class BaseControllerAdvice extends ResponseEntityExceptionHandler {
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .status(HttpStatus.BAD_REQUEST.name())
                 .data("요청 데이터가 올바르지 않습니다.")
+                .build();
+    }
+
+    @ExceptionHandler({
+            JwtException.class
+    })
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public BaseResponse<String> handleUnauthorized(Exception e) {
+        log.warn("Unauthorized Exception: {}", e.getMessage(), e);
+
+        return BaseResponse.<String>builder()
+                .statusCode(HttpStatus.UNAUTHORIZED.value())
+                .status(HttpStatus.UNAUTHORIZED.name())
+                .data(e.getMessage())
                 .build();
     }
 

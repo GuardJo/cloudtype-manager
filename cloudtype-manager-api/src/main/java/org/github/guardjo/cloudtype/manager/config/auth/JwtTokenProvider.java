@@ -47,7 +47,7 @@ public class JwtTokenProvider {
      * @return JWT 토큰 (access-token & refresh-token)
      */
     @Transactional
-    public AuthTokenInfo generateAuthTokenInfo(Authentication authentication) {
+    protected AuthTokenInfo generateAuthTokenInfo(Authentication authentication) {
         String accessToken = generateToken(authentication.getName(), jwtProperties.getAccessTokenExpirationMillis());
         String refreshToken = generateToken(authentication.getName(), jwtProperties.getRefreshTokenExpirationMillis());
         saveNewToken(refreshToken, authentication.getName());
@@ -96,7 +96,7 @@ public class JwtTokenProvider {
      * @param token JWT 토큰
      * @return 유효 여부 반환
      */
-    public boolean validateToken(String token) {
+    protected boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
             return true;
@@ -118,7 +118,7 @@ public class JwtTokenProvider {
      * @param token JWT 토큰
      * @return 인증 객체
      */
-    public Authentication getAuthentication(String token) {
+    protected Authentication getAuthentication(String token) {
         Claims claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
         UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
