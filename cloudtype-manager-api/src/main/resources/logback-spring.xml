@@ -40,9 +40,6 @@
         <logger name="org.github.guardjo.cloudtype.manager" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
         </logger>
-        <logger name="org.github.guardjo.cloudtype.manager.util.BatchScheduler" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE"/>
-        </logger>
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>
@@ -51,11 +48,9 @@
     <springProfile name="prod">
         <!-- For production environment -->
         <logger name="org.github.guardjo.cloudtype.manager.util.BatchScheduler" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE"/>
             <appender-ref ref="BATCH_LOG"/>
         </logger>
         <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
             <appender-ref ref="API_LOG"/>
         </root>
     </springProfile>
