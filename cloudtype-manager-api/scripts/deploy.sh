@@ -15,6 +15,8 @@ export GOOGLE_OAUTH2_REDIRECT_URL=$(aws ssm get-parameter --name /cloudtype-mana
 export JWT_TOKEN_SECRET=$(aws ssm get-parameter --name /cloudtype-manager-params/jwt-token-secret --query Parameter.Value | sed 's/"//g')
 export FRONTEND_AUTH_CALLBACK_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/frontend-auth-callback-url --query Parameter.Value | sed 's/"//g')
 
+cd $DEPLOY_PATH
+
 echo ">>> Setting env, DATABASE_URL : $DATABASE_URL" >> $DEPLOY_LOG_PATH
 
 echo ">>> build : $JAR_NAME" >> $DEPLOY_LOG_PATH
