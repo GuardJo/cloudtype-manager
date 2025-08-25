@@ -6,6 +6,7 @@ import ServerActionsArea from "@/components/server-actions-area";
 import {useQuery} from "@tanstack/react-query";
 import {getServerDetail} from "@/lib/server-api-handler";
 import {notFound} from "next/navigation";
+import Loading from "@/app/servers/[serverId]/loading";
 
 /* 서버 상세 정보 컨텐츠 */
 export default function ServerDetailContent({serverId}: ServerDetailContentProps) {
@@ -15,7 +16,7 @@ export default function ServerDetailContent({serverId}: ServerDetailContentProps
     })
 
     if (isLoading) {
-        return null
+        return <Loading/>
     }
 
     if (data?.statusCode === 404) {
