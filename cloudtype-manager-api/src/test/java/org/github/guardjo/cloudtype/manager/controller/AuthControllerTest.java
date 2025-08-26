@@ -3,6 +3,7 @@ package org.github.guardjo.cloudtype.manager.controller;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.MalformedJwtException;
+import org.github.guardjo.cloudtype.manager.config.TestSecurityConfig;
 import org.github.guardjo.cloudtype.manager.config.auth.JwtTokenProvider;
 import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
@@ -15,10 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -29,12 +33,13 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Import(TestSecurityConfig.class)
 @WebMvcTest(controllers = AuthController.class)
 class AuthControllerTest {
     private final static UserInfoEntity TEST_USER = TestDataGenerator.userInfoEntity("Tester");
@@ -55,14 +60,19 @@ class AuthControllerTest {
     void test_refreshAccessToken(String refreshToken, HttpStatus httpStatus) throws Exception {
         RefreshTokenRequest refreshRequest = new RefreshTokenRequest(refreshToken);
         String requestContent = objectMapper.writeValueAsString(refreshRequest);
-
         AuthTokenInfo expected = new AuthTokenInfo("test-access-token", "test-refresh-token");
+
+        if (StringUtils.isNotBlank(refreshToken)) {
+            Authentication mockAuthentication = mock(Authentication.class);
+            given(tokenProvider.getAuthentication(eq(refreshToken))).willReturn(mockAuthentication);
+            given(mockAuthentication.getPrincipal()).willReturn(TEST_USER_DETAILS);
+        }
+
         given(tokenProvider.generateAuthTokenInfo(eq(refreshToken), eq(TEST_USER.getUsername()))).willReturn(expected);
 
         String response = mockMvc.perform(post("/api/v1/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestContent)
-                        .with(user(TEST_USER_DETAILS))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().is(httpStatus.value()))
@@ -87,17 +97,21 @@ class AuthControllerTest {
         String refreshToken = "test-token";
         RefreshTokenRequest refreshRequest = new RefreshTokenRequest(refreshToken);
         String requestContent = objectMapper.writeValueAsString(refreshRequest);
+        Authentication mockAuthentication = mock(Authentication.class);
 
+        given(tokenProvider.getAuthentication(eq(refreshToken))).willReturn(mockAuthentication);
+        given(mockAuthentication.getPrincipal()).willReturn(TEST_USER_DETAILS);
         given(tokenProvider.generateAuthTokenInfo(eq(refreshToken), eq(TEST_USER.getUsername()))).willThrow(MalformedJwtException.class);
 
         mockMvc.perform(post("/api/v1/auth/refresh")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestContent)
-                        .with(user(TEST_USER_DETAILS))
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
 
+        then(tokenProvider).should().getAuthentication(eq(refreshToken));
+        then(mockAuthentication).should().getPrincipal();
         then(tokenProvider).should().generateAuthTokenInfo(eq(refreshToken), eq(TEST_USER.getUsername()));
     }
 

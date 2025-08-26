@@ -9,7 +9,7 @@ import org.github.guardjo.cloudtype.manager.model.request.RefreshTokenRequest;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.github.guardjo.cloudtype.manager.model.vo.AuthTokenInfo;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +24,10 @@ public class AuthController implements AuthApiDoc {
 
     @PostMapping("/refresh")
     @Override
-    public BaseResponse<AuthTokenInfo> refreshAccessToken(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestBody @Valid RefreshTokenRequest refreshRequest) {
+    public BaseResponse<AuthTokenInfo> refreshAccessToken(@RequestBody @Valid RefreshTokenRequest refreshRequest) {
+        Authentication authentication = jwtTokenProvider.getAuthentication(refreshRequest.refreshToken());
+        UserInfoPrincipal principal = (UserInfoPrincipal) authentication.getPrincipal();
+
         log.info("POST : /api/v1/auth/refresh, username = {}", principal.getUsername());
 
         AuthTokenInfo authTokenInfo = jwtTokenProvider.generateAuthTokenInfo(refreshRequest.refreshToken(), principal.getUsername());

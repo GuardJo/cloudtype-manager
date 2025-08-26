@@ -31,7 +31,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(registry -> {
-                    registry.requestMatchers("/api/**").authenticated()
+                    registry
+                            .requestMatchers("/api/v1/auth/refresh").permitAll()
+                            .requestMatchers("/api/**").authenticated()
                             .anyRequest().permitAll();
                 })
                 .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
