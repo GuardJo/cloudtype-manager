@@ -117,7 +117,7 @@ public class JwtTokenProvider {
      * @param token JWT 토큰
      * @return 인증 객체
      */
-    protected Authentication getAuthentication(String token) {
+    public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
         UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
