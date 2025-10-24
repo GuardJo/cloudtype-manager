@@ -3,6 +3,7 @@ import "./globals.css";
 import MobileLayout from "@/containers/mobile-layout";
 import MockProvider from "@/containers/mock-provider";
 import QueryProvider from "@/containers/query-provider";
+import FcmProvider from "@/containers/fcm-provider";
 
 export const metadata: Metadata = {
     title: "Cloudtype Manager",
@@ -19,13 +20,15 @@ export default function RootLayout({
         <body
             className={`antialiased`}
         >
-        <MockProvider>
-            <QueryProvider>
-                <MobileLayout>
-                    {children}
-                </MobileLayout>
-            </QueryProvider>
-        </MockProvider>
+        <FcmProvider>
+            <MockProvider>
+                <QueryProvider>
+                    <MobileLayout>
+                        {children}
+                    </MobileLayout>
+                </QueryProvider>
+            </MockProvider>
+        </FcmProvider>
         </body>
         </html>
     );
