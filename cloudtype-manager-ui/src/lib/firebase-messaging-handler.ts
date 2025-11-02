@@ -2,13 +2,6 @@ import {getMessaging, getToken, Messaging, onMessage} from "firebase/messaging";
 import {FirebaseApp} from "firebase/app";
 import {firebaseService} from "@/lib/firebase-config";
 
-interface NotificationConfig {
-    title?: string;
-    body?: string;
-    icon?: string;
-    tag?: string;
-}
-
 class FirebaseMessagingService {
     private messaging: Messaging | null = null
     private static instance: FirebaseMessagingService
