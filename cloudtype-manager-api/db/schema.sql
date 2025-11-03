@@ -2,6 +2,8 @@
 create sequence server_info_id_seq;
 -- refresh_token ID sequence
 create sequence refresh_token_id_seq;
+-- app_push_token ID sequence
+create sequence app_push_token_id_seq;
 
 -- 사용자 정보
 create table user_info
@@ -33,6 +35,18 @@ create table refresh_token
 (
     id          bigint primary key    default nextval('refresh_token_id_seq'),
     token       varchar(512) not null unique,
+    user_id     varchar(100) not null,
+    created_at  timestamp    not null default current_timestamp,
+    modified_at timestamp    not null default current_timestamp,
+    foreign key (user_id) references user_info (username)
+);
+
+-- app-push-token 정보
+create table app_push_token
+(
+    id          bigint primary key    default nextval('app_push_token_id_seq'),
+    token       varchar(300) not null unique,
+    device      varchar(300) not null,
     user_id     varchar(100) not null,
     created_at  timestamp    not null default current_timestamp,
     modified_at timestamp    not null default current_timestamp,
