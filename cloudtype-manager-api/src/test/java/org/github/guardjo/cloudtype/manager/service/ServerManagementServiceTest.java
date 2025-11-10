@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,8 +27,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
@@ -119,5 +119,51 @@ class ServerManagementServiceTest {
                 .isInstanceOf(EntityNotFoundException.class);
 
         then(serverInfoRepository).should().findByIdAndUserInfo_Username(eq(serverId), eq(username));
+    }
+
+    @DisplayName("특정 서버 정보 삭제")
+    @Test
+    void test_deleteMyServer() {
+        Long serverId = 1L;
+        ServerInfoEntity serverInfo = TestDataGenerator.serverInfoEntity(serverId, "Test Server", TEST_USER);
+        UserInfo testUser = UserInfo.from(TEST_USER);
+
+        given(serverInfoRepository.findById(eq(serverId))).willReturn(Optional.of(serverInfo));
+        willDoNothing().given(serverInfoRepository).delete(eq(serverInfo));
+
+        assertThatCode(() -> serverManagementService.deleteMyServer(serverId, testUser))
+                .doesNotThrowAnyException();
+
+        then(serverInfoRepository).should().findById(eq(serverId));
+        then(serverInfoRepository).should().delete(eq(serverInfo));
+    }
+
+    @DisplayName("특정 서버 정보 삭제 -> 서버 조회 실패")
+    @Test
+    void test_deleteMyServer_not_found_exception() {
+        Long serverId = 1L;
+        UserInfo testUser = UserInfo.from(TEST_USER);
+
+        given(serverInfoRepository.findById(eq(serverId))).willReturn(Optional.empty());
+
+        assertThatCode(() -> serverManagementService.deleteMyServer(serverId, testUser))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        then(serverInfoRepository).should().findById(eq(serverId));
+    }
+
+    @DisplayName("특정 서버 정보 삭제 -> 해당 서버 삭제 권한 없음")
+    @Test
+    void test_deleteMyServer_not_allowed_exception() {
+        Long serverId = 1L;
+        ServerInfoEntity serverInfo = TestDataGenerator.serverInfoEntity(serverId, "Test Server", TEST_USER);
+        UserInfo testUser = UserInfo.from(TestDataGenerator.userInfoEntity("Tester2"));
+
+        given(serverInfoRepository.findById(eq(serverId))).willReturn(Optional.of(serverInfo));
+
+        assertThatCode(() -> serverManagementService.deleteMyServer(serverId, testUser))
+                .isInstanceOf(AccessDeniedException.class);
+
+        then(serverInfoRepository).should().findById(eq(serverId));
     }
 }
