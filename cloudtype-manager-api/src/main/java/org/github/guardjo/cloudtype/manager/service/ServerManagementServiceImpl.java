@@ -11,6 +11,7 @@ import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,6 +59,23 @@ public class ServerManagementServiceImpl implements ServerManagementService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Not Found ServerInfoEntity, serverId = %d, username = %s", serverId, userInfo.id())));
 
         return ServerDetail.from(serverInfoEntity);
+    }
+
+    @Override
+    @Transactional
+    public void deleteMyServer(Long serverId, UserInfo userInfo) {
+        log.debug("Delete server, serverId = {}, username = {}", serverId, userInfo.id());
+
+        ServerInfoEntity serverInfoEntity = serverInfoRepository.findById(serverId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Not Found ServerInfoEntity, serverId = %d", serverId)));
+
+        if (serverInfoEntity.getUserInfo().getUsername().equals(userInfo.id())) {
+            serverInfoRepository.deleteById(serverId);
+            log.debug("Deleted server, serverId = {}", serverId);
+        } else {
+            log.warn("Not allowed to delete server, serverId = {}, username = {}", serverId, userInfo.id());
+            throw new AccessDeniedException(String.format("Not allowed to delete server, serverId = %d, username = %s", serverId, userInfo.id()));
+        }
     }
 
     /*
