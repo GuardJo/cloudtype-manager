@@ -69,13 +69,15 @@ public class ServerManagementServiceImpl implements ServerManagementService {
         ServerInfoEntity serverInfoEntity = serverInfoRepository.findById(serverId)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Not Found ServerInfoEntity, serverId = %d", serverId)));
 
-        if (serverInfoEntity.getUserInfo().getUsername().equals(userInfo.id())) {
-            serverInfoRepository.deleteById(serverId);
-            log.debug("Deleted server, serverId = {}", serverId);
-        } else {
+        if (!serverInfoEntity.getUserInfo().getUsername().equals(userInfo.id())) {
             log.warn("Not allowed to delete server, serverId = {}, username = {}", serverId, userInfo.id());
             throw new AccessDeniedException(String.format("Not allowed to delete server, serverId = %d, username = %s", serverId, userInfo.id()));
+
         }
+
+        serverInfoRepository.delete(serverInfoEntity);
+
+        log.debug("Deleted server, serverId = {}", serverInfoEntity.getId());
     }
 
     /*

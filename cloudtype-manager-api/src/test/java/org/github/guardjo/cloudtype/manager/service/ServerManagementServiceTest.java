@@ -129,13 +129,13 @@ class ServerManagementServiceTest {
         UserInfo testUser = UserInfo.from(TEST_USER);
 
         given(serverInfoRepository.findById(eq(serverId))).willReturn(Optional.of(serverInfo));
-        willDoNothing().given(serverInfoRepository).deleteById(eq(serverId));
+        willDoNothing().given(serverInfoRepository).delete(eq(serverInfo));
 
         assertThatCode(() -> serverManagementService.deleteMyServer(serverId, testUser))
                 .doesNotThrowAnyException();
 
         then(serverInfoRepository).should().findById(eq(serverId));
-        then(serverInfoRepository).should().deleteById(eq(serverId));
+        then(serverInfoRepository).should().delete(eq(serverInfo));
     }
 
     @DisplayName("특정 서버 정보 삭제 -> 서버 조회 실패")
