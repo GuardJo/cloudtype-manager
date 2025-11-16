@@ -31,7 +31,7 @@ erDiagram
     user_info {
 varchar(100) username pk
 varchar(100) password "not null"
-varchar(10 name "not null"
+varchar(10) name "not null"
 timestamp createdAt "not null"
 timestamp modifiedAt "not null"
 }
@@ -53,11 +53,11 @@ bigint id pk "auto increment"
 varchar(512) token uk "not null"
 timestamp createdAt "not null"
 timestamp modifiedAt "not null"
-varchar(100) user_id fk "user_inf"
+varchar(100) user_id fk "user_info"
 }
 
 app_push_token {
-bigint id pk "auto generate"
+bigint id pk "auto increment"
 varchar(300) token uk "not null"
 varchar(300) device "not null"
 timestamp createdAt "not null"
