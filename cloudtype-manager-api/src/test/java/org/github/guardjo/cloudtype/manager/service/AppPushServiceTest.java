@@ -15,6 +15,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -47,13 +50,45 @@ class AppPushServiceTest {
         ArgumentCaptor<AppPushTokenEntity> appPushTokenEntityArgumentCaptor = ArgumentCaptor.forClass(AppPushTokenEntity.class);
 
         given(userInfoEntityRepository.getReferenceById(eq(userInfo.id()))).willReturn(TESTE_USER_ENTITY);
+        given(appPushTokenEntityRepository.findByToken(eq(token))).willReturn(Optional.empty());
         given(appPushTokenEntityRepository.save(appPushTokenEntityArgumentCaptor.capture())).willReturn(mock(AppPushTokenEntity.class));
 
         assertThatCode(() -> appPushService.saveAppPushToken(request, userInfo))
                 .doesNotThrowAnyException();
+
         AppPushTokenEntity actual = appPushTokenEntityArgumentCaptor.getValue();
+        assertThat(actual).isNotNull();
+        assertThat(actual.getToken()).isEqualTo(token);
+        assertThat(actual.getDevice()).isEqualTo(device);
+        assertThat(actual.getUserInfo()).isEqualTo(TESTE_USER_ENTITY);
 
         then(userInfoEntityRepository).should().getReferenceById(eq(userInfo.id()));
+        then(appPushTokenEntityRepository).should().findByToken(eq(token));
         then(appPushTokenEntityRepository).should().save(any(AppPushTokenEntity.class));
+    }
+
+    @DisplayName("가존 AppPushToken 정보 갱신")
+    @Test
+    void test_saveAppPushToken_update_old_token() {
+        String device = "WEB";
+        String token = "test-app-push-token";
+
+        AppPushTokenRequest request = new AppPushTokenRequest(device, token);
+        UserInfo userInfo = UserInfo.from(TESTE_USER_ENTITY);
+        AppPushTokenEntity oldAppPushTokenEntity = AppPushTokenEntity.builder()
+                .id(1L)
+                .token(token)
+                .device("OLD")
+                .userInfo(TestDataGenerator.userInfoEntity("tester2"))
+                .build();
+
+        given(userInfoEntityRepository.getReferenceById(eq(userInfo.id()))).willReturn(TESTE_USER_ENTITY);
+        given(appPushTokenEntityRepository.findByToken(eq(token))).willReturn(Optional.of(oldAppPushTokenEntity));
+
+        assertThatCode(() -> appPushService.saveAppPushToken(request, userInfo))
+                .doesNotThrowAnyException();
+
+        then(userInfoEntityRepository).should().getReferenceById(eq(userInfo.id()));
+        then(appPushTokenEntityRepository).should().findByToken(eq(token));
     }
 }

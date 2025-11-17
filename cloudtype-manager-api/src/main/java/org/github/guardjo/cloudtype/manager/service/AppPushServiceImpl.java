@@ -11,6 +11,8 @@ import org.github.guardjo.cloudtype.manager.repository.AppPushTokenEntityReposit
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -25,14 +27,29 @@ public class AppPushServiceImpl implements AppPushService {
 
         UserInfoEntity userInfoEntity = userInfoRepository.getReferenceById(userInfo.id());
 
-        AppPushTokenEntity newAppPushToken = AppPushTokenEntity.builder()
-                .token(tokenRequest.token())
-                .device(tokenRequest.device())
-                .userInfo(userInfoEntity)
-                .build();
+        searchAppPushToken(tokenRequest.token())
+                .ifPresentOrElse((appPushTokenEntity) -> {
+                    appPushTokenEntity.setDevice(tokenRequest.device());
+                    appPushTokenEntity.setUserInfo(userInfoEntity);
 
-        newAppPushToken = appPushTokenRepository.save(newAppPushToken);
+                    log.info("Update AppPushToken Entity, id = {}", appPushTokenEntity.getId());
+                }, () -> {
+                    AppPushTokenEntity newAppPushToken = AppPushTokenEntity.builder()
+                            .token(tokenRequest.token())
+                            .device(tokenRequest.device())
+                            .userInfo(userInfoEntity)
+                            .build();
 
-        log.info("Save new AppPushToken Entity, id = {}", newAppPushToken.getId());
+                    newAppPushToken = appPushTokenRepository.save(newAppPushToken);
+
+                    log.info("Save new AppPushToken Entity, id = {}", newAppPushToken.getId());
+                });
+    }
+
+    /*
+    AppPushToken 조회
+     */
+    private Optional<AppPushTokenEntity> searchAppPushToken(String token) {
+        return appPushTokenRepository.findByToken(token);
     }
 }

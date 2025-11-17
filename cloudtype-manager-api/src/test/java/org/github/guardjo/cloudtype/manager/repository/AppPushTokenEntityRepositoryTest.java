@@ -41,9 +41,7 @@ class AppPushTokenEntityRepositoryTest {
         AppPushTokenEntity newEntity = AppPushTokenEntity.builder()
                 .token(newToken)
                 .device("WEB")
-                .userInfo(UserInfoEntity.builder()
-                        .username(username)
-                        .build())
+                .userInfo(TEST_USER)
                 .build();
 
         AppPushTokenEntity actual = appPushTokenRepository.save(newEntity);
@@ -54,5 +52,24 @@ class AppPushTokenEntityRepositoryTest {
         assertThat(actual.getUserInfo().getUsername()).isEqualTo(username);
         assertThat(actual).isEqualTo(newEntity);
         assertThat(totalCount).isEqualTo(1L);
+    }
+
+    @DisplayName("토큰 값을 기준으로 AppPushToken Entity 조회")
+    @Test
+    void test_findByToken() {
+        String newToken = "test-token";
+        String username = TEST_USER.getUsername();
+
+        AppPushTokenEntity expected = AppPushTokenEntity.builder()
+                .token(newToken)
+                .device("WEB")
+                .userInfo(TEST_USER)
+                .build();
+
+        expected = appPushTokenRepository.save(expected);
+        appPushTokenRepository.flush();
+
+        AppPushTokenEntity actual = appPushTokenRepository.findByToken(newToken).orElseThrow();
+        assertThat(actual).isEqualTo(expected);
     }
 }

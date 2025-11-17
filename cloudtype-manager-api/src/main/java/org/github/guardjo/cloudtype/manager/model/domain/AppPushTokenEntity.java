@@ -18,9 +18,11 @@ public class AppPushTokenEntity extends BaseEntity {
     @Column(length = 300, nullable = false, unique = true)
     private String token;
 
+    @Setter
     @Column(length = 300, nullable = false)
     private String device;
 
+    @Setter
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "username", nullable = false)
     private UserInfoEntity userInfo;
