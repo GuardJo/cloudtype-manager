@@ -20,7 +20,8 @@ public class AppPushTokenEntity extends BaseEntity {
 
     @Setter
     @Column(length = 300, nullable = false)
-    private String device;
+    @Builder.Default
+    private String device = "WEB";
 
     @Setter
     @ManyToOne
