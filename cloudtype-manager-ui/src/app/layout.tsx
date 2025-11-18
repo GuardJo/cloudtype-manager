@@ -20,15 +20,15 @@ export default function RootLayout({
         <body
             className={`antialiased`}
         >
-        <FcmProvider>
-            <MockProvider>
-                <QueryProvider>
+        <MockProvider>
+            <QueryProvider>
+                <FcmProvider>
                     <MobileLayout>
                         {children}
                     </MobileLayout>
-                </QueryProvider>
-            </MockProvider>
-        </FcmProvider>
+                </FcmProvider>
+            </QueryProvider>
+        </MockProvider>
         </body>
         </html>
     );
