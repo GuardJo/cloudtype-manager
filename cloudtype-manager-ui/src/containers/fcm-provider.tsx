@@ -26,16 +26,19 @@ export default function FcmProvider({children}: { children: ReactNode }) {
 
                 await firebaseMessagingService.registerFirebaseServiceWorker()
 
-                await firebaseMessagingService.getFCMToken()
-                    .then((token) => {
+                try {
+                    const fcmToken = await firebaseMessagingService.getFCMToken()
+                    if (fcmToken && fcmToken.trim().length > 0) {
                         const authToken = localStorage.getItem(AUTH_TOKEN_KEY)
-                        if (token.trim().length > 0 && authToken !== null) {
-                            pushTokenMutation.mutate(token)
-                        } else {
-                            console.error('Unable to retrieve FCM registration token')
+                        if (authToken) {
+                            pushTokenMutation.mutate(fcmToken)
                         }
-                    })
-                    .catch((error) => console.error('Unable to retrieve FCM registration token', error))
+                    } else {
+                        console.error('Unable to retrieve FCM registration token')
+                    }
+                } catch (e) {
+                    console.error('Unable to retrieve FCM registration token', e)
+                }
 
                 firebaseMessagingService.setupForegroundMessageHandler()
             } catch (error) {
