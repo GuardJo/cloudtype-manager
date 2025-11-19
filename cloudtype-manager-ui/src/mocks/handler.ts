@@ -91,5 +91,14 @@ export const handlers = [
         }
 
         return HttpResponse.json(authTokenInfo);
+    }),
+    http.post(`${mockApiServerUrl}/api/v1/notifications/push-token`, () => {
+        const successes: BaseResponse<string> = {
+            statusCode: 200,
+            status: 'OK',
+            data: 'Successes'
+        }
+
+        return HttpResponse.json(successes);
     })
 ]
