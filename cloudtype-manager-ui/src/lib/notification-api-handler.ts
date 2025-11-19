@@ -1,4 +1,4 @@
-import {getAuthHeaders, validateResponse} from "@/lib/utils";
+import {getAuthHeaders, getDeviceId, validateResponse} from "@/lib/utils";
 import {AppPushTokenAddParams, BaseResponse} from "@/lib/models";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
@@ -9,7 +9,7 @@ const apiUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
  */
 export async function addAppPushToken(token: string): Promise<BaseResponse<string>> {
     const payload: AppPushTokenAddParams = {
-        device: 'web',
+        device: getDeviceId(),
         token: token,
     };
 
