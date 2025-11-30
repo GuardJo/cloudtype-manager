@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.repository.querydsl;
 
+import org.github.guardjo.cloudtype.manager.model.vo.InactiveServerNotification;
 import org.springframework.data.jpa.repository.Modifying;
 
 import java.util.List;
@@ -14,4 +15,12 @@ public interface ServerInfoQueryRepository {
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     long updateActivateStatus(List<Long> idsToActivate, List<Long> idsToDeactivate);
+
+    /**
+     * 주어진 비활성 서버 식별키에 대한 비활성 알림 전송 정보 목록 반환
+     *
+     * @param serverIds 비활성 서버 식별키
+     * @return 비활성 알림 전송 정보 목록
+     */
+    List<InactiveServerNotification> findAllInactiveServerNotifications(List<Long> serverIds);
 }
