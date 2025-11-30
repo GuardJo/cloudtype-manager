@@ -32,4 +32,14 @@ public interface ServerManagementService {
      * @return server 상세 정보
      */
     ServerDetail getServerDetail(Long serverId, UserInfo userInfo);
+
+    /**
+     * 주어진 식별키에 해당하는 server 정보를 삭제한다.
+     * <hr/>
+     * 단, 해당 서버를 저장한 회원이 아닐 경우, 삭제 요청을 거절한다.
+     *
+     * @param serverId 서버 식별키
+     * @param userInfo 계정 정보 VO
+     */
+    void deleteMyServer(Long serverId, UserInfo userInfo);
 }

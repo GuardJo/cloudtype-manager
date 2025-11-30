@@ -3,6 +3,7 @@ import "./globals.css";
 import MobileLayout from "@/containers/mobile-layout";
 import MockProvider from "@/containers/mock-provider";
 import QueryProvider from "@/containers/query-provider";
+import FcmProvider from "@/containers/fcm-provider";
 
 export const metadata: Metadata = {
     title: "Cloudtype Manager",
@@ -21,9 +22,11 @@ export default function RootLayout({
         >
         <MockProvider>
             <QueryProvider>
-                <MobileLayout>
-                    {children}
-                </MobileLayout>
+                <FcmProvider>
+                    <MobileLayout>
+                        {children}
+                    </MobileLayout>
+                </FcmProvider>
             </QueryProvider>
         </MockProvider>
         </body>

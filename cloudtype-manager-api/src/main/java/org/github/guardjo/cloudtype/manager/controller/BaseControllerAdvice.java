@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -44,6 +45,20 @@ public class BaseControllerAdvice extends ResponseEntityExceptionHandler {
         return BaseResponse.<String>builder()
                 .statusCode(HttpStatus.UNAUTHORIZED.value())
                 .status(HttpStatus.UNAUTHORIZED.name())
+                .data(e.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(
+            AccessDeniedException.class
+    )
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public BaseResponse<String> handleForbidden(Exception e) {
+        log.warn("Forbidden Exception: {}", e.getMessage(), e);
+
+        return BaseResponse.<String>builder()
+                .statusCode(HttpStatus.FORBIDDEN.value())
+                .status(HttpStatus.FORBIDDEN.name())
                 .data(e.getMessage())
                 .build();
     }

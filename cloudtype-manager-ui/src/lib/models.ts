@@ -50,6 +50,14 @@ export type AuthTokenInfo = {
 }
 
 /**
+ * AppPush 토큰 저장 요청
+ */
+export type AppPushTokenAddParams = {
+    device: string,
+    token: string
+}
+
+/**
  * API 서버 기본 응답 구조
  */
 export type BaseResponse<T> = {

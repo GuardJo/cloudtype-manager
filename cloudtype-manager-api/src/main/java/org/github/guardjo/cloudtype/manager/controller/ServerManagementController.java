@@ -51,4 +51,14 @@ public class ServerManagementController implements ServerManagementApiDoc {
 
         return BaseResponse.defaultSuccess();
     }
+
+    @DeleteMapping("/{serverId}")
+    @Override
+    public BaseResponse<String> deleteMyServer(@AuthenticationPrincipal UserInfoPrincipal principal, @PathVariable("serverId") Long serverId) {
+        log.info("DELETE : /api/v1/servers/{}, username = {}", serverId, principal.getUsername());
+
+        serverManagementService.deleteMyServer(serverId, principal.getUserInfo());
+
+        return BaseResponse.defaultSuccess();
+    }
 }

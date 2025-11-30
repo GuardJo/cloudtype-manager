@@ -21,4 +21,7 @@ public interface ServerManagementApiDoc {
 
     @Operation(summary = "신규 서버 등록", description = "요청한 정보를 기반으로 신규 서버를 저장한다.")
     BaseResponse<String> addNewServer(@Parameter(hidden = true) UserInfoPrincipal principal, CreateServerRequest createServerRequest);
+
+    @Operation(summary = "관리 서버 삭제", description = "해당 계정이 관리중인 서버를 삭제한다.")
+    BaseResponse<String> deleteMyServer(@Parameter(hidden = true) UserInfoPrincipal principal, Long serverId);
 }

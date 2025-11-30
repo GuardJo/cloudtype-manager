@@ -24,6 +24,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -36,8 +37,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -177,6 +177,57 @@ class ServerManagementControllerTest {
                 .andExpect(status().isNotFound());
 
         then(serverManagementService).should().getServerDetail(eq(serverId), eq(TEST_USER_DETAILS.getUserInfo()));
+    }
+
+    @DisplayName("DELETE : /api/v1/servers/{serverId}")
+    @Test
+    void test_deleteMyServer() throws Exception {
+        Long serverId = 1L;
+
+        willDoNothing().given(serverManagementService).deleteMyServer(eq(serverId), eq(TEST_USER_DETAILS.getUserInfo()));
+
+        mockMvc.perform(delete("/api/v1/servers/{serverId}", serverId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(user(TEST_USER_DETAILS))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        then(serverManagementService).should().deleteMyServer(eq(serverId), eq(TEST_USER_DETAILS.getUserInfo()));
+    }
+
+    @DisplayName("DELETE : /api/v1/servers/{serverId} -> Not Found Server")
+    @Test
+    void test_deleteMyServer_not_found_exception() throws Exception {
+        Long serverId = 1L;
+
+        willThrow(EntityNotFoundException.class).given(serverManagementService).deleteMyServer(eq(serverId), eq(TEST_USER_DETAILS.getUserInfo()));
+
+        mockMvc.perform(delete("/api/v1/servers/{serverId}", serverId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(user(TEST_USER_DETAILS))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        then(serverManagementService).should().deleteMyServer(eq(serverId), eq(TEST_USER_DETAILS.getUserInfo()));
+    }
+
+    @DisplayName("DELETE : /api/v1/servers/{serverId} -> Not Allowed User")
+    @Test
+    void test_deleteMyServer_not_allowed_user() throws Exception {
+        Long serverId = 1L;
+
+        willThrow(AccessDeniedException.class).given(serverManagementService).deleteMyServer(eq(serverId), eq(TEST_USER_DETAILS.getUserInfo()));
+
+        mockMvc.perform(delete("/api/v1/servers/{serverId}", serverId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(user(TEST_USER_DETAILS))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+
+        then(serverManagementService).should().deleteMyServer(eq(serverId), eq(TEST_USER_DETAILS.getUserInfo()));
     }
 
     private static Stream<Arguments> getAddNewServerTestData() {
