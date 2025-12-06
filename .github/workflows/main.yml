@@ -29,6 +29,11 @@ jobs:
           distribution: 'corretto'
           cache: gradle
 
+      - name: Create Firebase Service Account File
+        run: |
+          mkdir -p src/main/resources/secrets
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > src/main/resources/secrets/firebase-service-account.json
+
       - name: Gradle execute permission for gradlew
         run: chmod +x ./gradlew
         shell: bash
