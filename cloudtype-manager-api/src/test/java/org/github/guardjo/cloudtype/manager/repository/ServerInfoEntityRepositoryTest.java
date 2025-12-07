@@ -3,6 +3,7 @@ package org.github.guardjo.cloudtype.manager.repository;
 import jakarta.persistence.EntityManager;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.vo.InactiveServerNotification;
 import org.github.guardjo.cloudtype.manager.util.TestDataGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @DataJpaTest
 class ServerInfoEntityRepositoryTest {
     private final static UserInfoEntity TEST_USER = TestDataGenerator.userInfoEntity("Tester");
+
+    private final String testAppPushToken = "test-app-push-token";
     private final List<ServerInfoEntity> serverInfos = new ArrayList<>();
 
     @Autowired
@@ -28,11 +31,16 @@ class ServerInfoEntityRepositoryTest {
     private UserInfoEntityRepository userInfoEntityRepository;
 
     @Autowired
+    private AppPushTokenEntityRepository appPushTokenEntityRepository;
+
+    @Autowired
     private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
         userInfoEntityRepository.save(TEST_USER);
+        appPushTokenEntityRepository.save(TestDataGenerator.appPushTokenEntity(testAppPushToken, TEST_USER));
+
         for (int i = 0; i < 5; i++) {
             serverInfos.add(TestDataGenerator.serverInfoEntity("Server " + i, TEST_USER));
         }
@@ -44,7 +52,6 @@ class ServerInfoEntityRepositoryTest {
     void tearDown() {
         serverInfoRepository.deleteAll();
         serverInfos.clear();
-        userInfoEntityRepository.deleteAll();
     }
 
     @DisplayName("특정 server_info 조회")
@@ -96,5 +103,31 @@ class ServerInfoEntityRepositoryTest {
         assertThat(serverInfoEntities.stream()
                 .filter(ServerInfoEntity::isActivate)
                 .count()).isEqualTo(activateServerIds.size());
+    }
+
+    @DisplayName("비활성 서버 알림 발송 정보 목록 조회")
+    @Test
+    void test_findAllInactiveServerNotifications() {
+        List<Long> inactiveServerIds = serverInfos.stream()
+                .mapToLong(ServerInfoEntity::getId)
+                .boxed()
+                .toList();
+
+        List<InactiveServerNotification> actual = serverInfoRepository.findAllInactiveServerNotifications(inactiveServerIds);
+
+        assertThat(actual).isNotNull();
+        assertThat(actual.isEmpty()).isFalse();
+        assertThat(actual.size()).isEqualTo(serverInfos.size());
+
+        for (int i = 0; i < actual.size(); i++) {
+            ServerInfoEntity serverInfo = serverInfos.get(i);
+            InactiveServerNotification notification = actual.get(i);
+
+            assertThat(notification.serverId()).isEqualTo(serverInfo.getId());
+            assertThat(notification.serverName()).isEqualTo(serverInfo.getServerName());
+            assertThat(notification.userId()).isEqualTo(TEST_USER.getUsername());
+            assertThat(notification.userName()).isEqualTo(TEST_USER.getName());
+            assertThat(notification.appPushToken()).isEqualTo(testAppPushToken);
+        }
     }
 }

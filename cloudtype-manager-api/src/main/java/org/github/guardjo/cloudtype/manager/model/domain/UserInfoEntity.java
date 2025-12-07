@@ -1,10 +1,10 @@
 package org.github.guardjo.cloudtype.manager.model.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Table(name = "user_info")
 @Entity
@@ -24,4 +24,8 @@ public class UserInfoEntity extends BaseEntity {
 
     @Column(length = 100)
     private String name;
+
+    @OneToMany(mappedBy = "userInfo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<AppPushTokenEntity> appPushTokens = new ArrayList<>();
 }
