@@ -9,3 +9,5 @@ cors:
     - ${ALLOWED_ORIGIN_SERVER_URL}
 frontend:
   auth-callback-url: ${FRONTEND_AUTH_CALLBACK_URL}
+firebase:
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH}

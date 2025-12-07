@@ -33,6 +33,6 @@ jwt:
 logging:
   level:
     org.github.guardjo.cloudtype.manager: debug
-
+    
 firebase:
-  credentials-path: "secrets/firebase-service-account.json"
+  credentials-path: classpath:secrets/firebase-service-account.json

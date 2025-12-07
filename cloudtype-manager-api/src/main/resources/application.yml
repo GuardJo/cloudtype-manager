@@ -52,4 +52,4 @@ frontend:
   auth-callback-url: "http://localhost:3000/oauth/callback"
 
 firebase:
-  credentials-path: "secrets/firebase-service-account.json"
+  credentials-path: classpath:secrets/firebase-service-account.json
