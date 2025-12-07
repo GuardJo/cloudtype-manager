@@ -1,12 +1,15 @@
 package org.github.guardjo.cloudtype.manager.util;
 
+import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.github.guardjo.cloudtype.manager.model.vo.FirebaseMessageRequest;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -15,23 +18,22 @@ public class FirebaseMessageSender {
     private final FirebaseMessaging firebaseMessaging;
 
     /**
-     * Firebase 메시지 전송 요청
+     * Firebase를 통해 푸시 메시지를 벌크로 전송
      *
-     * @param targetToken 전송 대상 token
-     * @param title       전송 메시시 제목
-     * @param body        전송 메시지 본문
-     * @return 메시지 전송 결과
-     * @throws FirebaseMessagingException Firebase 메시지 전송 실패 예외
+     * @param firebaseMessageRequests 벌크로 전송할 메시지 정보 (token, title, body)
      */
-    public String sendMessage(String targetToken, String title, String body) throws FirebaseMessagingException {
-        Message message = Message.builder()
-                .setToken(targetToken)
-                .setNotification(Notification.builder()
-                        .setTitle(title)
-                        .setBody(body)
-                        .build())
-                .build();
+    public void sendMessage(List<FirebaseMessageRequest> firebaseMessageRequests) {
+        List<Message> messages = firebaseMessageRequests.stream()
+                .map(FirebaseMessageRequest::toMessage)
+                .toList();
 
-        return firebaseMessaging.send(message);
+        BatchResponse result = null;
+        try {
+            result = firebaseMessaging.sendEach(messages);
+
+            log.info("FirebaseMessage send result, successCount = {}, failureCount = {}", result.getSuccessCount(), result.getFailureCount());
+        } catch (FirebaseMessagingException e) {
+            log.warn("Failed send firebase message, cause = {}", e.getMessage(), e);
+        }
     }
 }

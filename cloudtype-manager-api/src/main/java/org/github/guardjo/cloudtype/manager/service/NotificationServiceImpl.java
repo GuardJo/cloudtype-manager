@@ -1,8 +1,8 @@
 package org.github.guardjo.cloudtype.manager.service;
 
-import com.google.firebase.messaging.FirebaseMessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.github.guardjo.cloudtype.manager.model.vo.FirebaseMessageRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.InactiveServerNotification;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.util.FirebaseMessageSender;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -29,19 +30,25 @@ public class NotificationServiceImpl implements NotificationService {
     public CompletableFuture<Long> sendServerInactiveNotification(List<Long> inactiveServerIds) {
         long sendCount = 0L;
 
+        if (Objects.isNull(inactiveServerIds) || inactiveServerIds.isEmpty()) {
+            log.warn("Not founds InactiveServerIds");
+            return CompletableFuture.completedFuture(sendCount);
+        }
+
         List<InactiveServerNotification> inactiveServerNotifications = serverInfoRepository.findAllInactiveServerNotifications(inactiveServerIds);
 
-        for (InactiveServerNotification inactiveServerNotification : inactiveServerNotifications) {
-            String message = String.format(INACTIVE_MESSAGE_FORMAT, inactiveServerNotification.serverName());
+        List<FirebaseMessageRequest> firebaseMessageRequests = inactiveServerNotifications.stream()
+                .map(noti -> {
+                    return new FirebaseMessageRequest(
+                            noti.appPushToken(),
+                            INACTIVE_MESSAGE_TITLE,
+                            String.format(INACTIVE_MESSAGE_FORMAT, noti.serverName())
+                    );
+                })
+                .toList();
 
-            try {
-                messageSender.sendMessage(inactiveServerNotification.appPushToken(), INACTIVE_MESSAGE_TITLE, message);
-
-                sendCount++;
-            } catch (FirebaseMessagingException e) {
-                log.warn("Failed, send inactive-server-notification, serverId = {}, token = {}", inactiveServerNotification.serverId(), inactiveServerNotification.appPushToken(), e);
-            }
-        }
+        messageSender.sendMessage(firebaseMessageRequests);
+        sendCount = firebaseMessageRequests.size();
 
         return CompletableFuture.completedFuture(sendCount);
     }

@@ -4,6 +4,7 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import org.github.guardjo.cloudtype.manager.model.domain.AppPushTokenEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.vo.FirebaseMessageRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.InactiveServerNotification;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.util.FirebaseMessageSender;
@@ -11,6 +12,7 @@ import org.github.guardjo.cloudtype.manager.util.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,11 +22,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.atLeast;
+import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceImplTest {
@@ -61,20 +60,28 @@ class NotificationServiceImplTest {
                 })
                 .flatMap(List::stream)
                 .toList();
+        ArgumentCaptor<List<FirebaseMessageRequest>> messageRequestsCaptor = ArgumentCaptor.forClass(List.class);
 
         long expected = serverInfoIds.size();
 
-
         given(serverInfoRepository.findAllInactiveServerNotifications(eq(serverInfoIds))).willReturn(inactiveServerNotifications);
-        for (AppPushTokenEntity appPushToken : TEST_USER_WITH_PUSH_TOKEN.getAppPushTokens()) {
-            given(messageSender.sendMessage(eq(appPushToken.getToken()), anyString(), anyString())).willReturn("Success");
-        }
+        willDoNothing().given(messageSender).sendMessage(messageRequestsCaptor.capture());
 
         long actual = notificationService.sendServerInactiveNotification(serverInfoIds).get();
+        List<FirebaseMessageRequest> messageRequests = messageRequestsCaptor.getValue();
 
         assertThat(actual).isEqualTo(expected);
+        assertThat(messageRequests.size()).isEqualTo(inactiveServerNotifications.size());
+
+        for (int i = 0; i < messageRequests.size(); i++) {
+            FirebaseMessageRequest messageRequest = messageRequests.get(i);
+            InactiveServerNotification inactiveServerNotification = inactiveServerNotifications.get(i);
+
+            assertThat(messageRequest.targetToken()).isEqualTo(inactiveServerNotification.appPushToken());
+            assertThat(messageRequest.body().contains(inactiveServerNotification.serverName())).isTrue();
+        }
 
         then(serverInfoRepository).should().findAllInactiveServerNotifications(eq(serverInfoIds));
-        then(messageSender).should(atLeast(TEST_USER_WITH_PUSH_TOKEN.getAppPushTokens().size())).sendMessage(anyString(), anyString(), anyString());
+        then(messageSender).should().sendMessage(any(List.class));
     }
 }
