@@ -65,7 +65,20 @@ timestamp modifiedAt "not null"
 varchar(100) user_id fk "user_info"
 }
 
+app_push_msg {
+bigint id pk "auto increment"
+varchar(100) title "not null"
+varchar(500) body "not null"
+bool push_sent "not null default false"
+bool push_received "not null default false"
+timestamp createdAt "not null"
+timestamp modifiedAt "not null"
+bigint token_id fk "not null"
+ }
+
 user_info ||--o{ server_info: "user_id"
 user_info o|--|{ refresh_token: "user_id"
 user_info ||--o{ app_push_token: "user_id"
+
+app_push_token ||--o{ app_push_msg: "token_id"
 ```

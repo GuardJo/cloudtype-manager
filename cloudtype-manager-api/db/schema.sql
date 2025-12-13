@@ -4,6 +4,8 @@ create sequence server_info_id_seq;
 create sequence refresh_token_id_seq;
 -- app_push_token ID sequence
 create sequence app_push_token_id_seq;
+-- app_push_msg ID sequence
+create sequence app_push_msg_seq;
 
 -- 사용자 정보
 create table user_info
@@ -51,6 +53,20 @@ create table app_push_token
     created_at  timestamp    not null default current_timestamp,
     modified_at timestamp    not null default current_timestamp,
     foreign key (user_id) references user_info (username)
+);
+
+-- app-push-msg 정보
+create table app_push_msg
+(
+    id            bigint primary key    default nextval('app_push_msg_seq'),
+    title         varchar(100) not null,
+    body          varchar(500) not null,
+    push_sent     bool         not null default false,
+    push_received bool         not null default false,
+    created_at    timestamp    not null default current_timestamp,
+    modified_at   timestamp    not null default current_timestamp,
+    token_id      bigint       not null,
+    foreign key (token_id) references app_push_token (id)
 );
 
 -- spring batch
