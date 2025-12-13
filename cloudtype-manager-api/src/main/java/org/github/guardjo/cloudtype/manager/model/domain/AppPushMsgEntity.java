@@ -19,7 +19,7 @@ public class AppPushMsgEntity extends BaseEntity {
     @Column(length = 100, nullable = false)
     private String title;
 
-    @Column(length = 1000, nullable = false)
+    @Column(length = 500, nullable = false)
     private String body;
 
     @Column(name = "push_sent", nullable = false)

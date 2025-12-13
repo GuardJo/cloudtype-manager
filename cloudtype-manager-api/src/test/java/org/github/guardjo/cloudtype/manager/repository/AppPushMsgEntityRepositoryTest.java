@@ -36,6 +36,7 @@ class AppPushMsgEntityRepositoryTest {
     @AfterEach
     void tearDown() {
         appPushMsgRepository.deleteAll();
+        appPushTokenRepository.deleteAll();
         userInfoRepository.deleteAll();
     }
 
