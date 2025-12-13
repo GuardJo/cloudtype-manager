@@ -5,6 +5,7 @@ import com.google.firebase.messaging.Notification;
 
 /* Firebase 푸시 알림 메시지에 담을 데이터 정보 */
 public record FirebaseMessageRequest(
+        Long targetTokenId,
         String targetToken,
         String title,
         String body

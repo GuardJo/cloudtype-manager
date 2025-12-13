@@ -61,6 +61,7 @@ public class ServerInfoQueryRepositoryImpl extends QuerydslRepositorySupport imp
                         qServerInfoEntity.serverName,
                         qUserInfoEntity.username,
                         qUserInfoEntity.name,
+                        qAppPushTokenEntity.id,
                         qAppPushTokenEntity.token))
                 .fetch();
     }

@@ -6,6 +6,7 @@ public record InactiveServerNotification(
         String serverName,
         String userId,
         String userName,
+        Long appPushTokenId,
         String appPushToken
 ) {
 }

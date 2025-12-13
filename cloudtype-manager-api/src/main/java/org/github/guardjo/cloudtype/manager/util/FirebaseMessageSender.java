@@ -22,18 +22,13 @@ public class FirebaseMessageSender {
      *
      * @param firebaseMessageRequests 벌크로 전송할 메시지 정보 (token, title, body)
      */
-    public void sendMessage(List<FirebaseMessageRequest> firebaseMessageRequests) {
+    public void sendMessage(List<FirebaseMessageRequest> firebaseMessageRequests) throws FirebaseMessagingException {
         List<Message> messages = firebaseMessageRequests.stream()
                 .map(FirebaseMessageRequest::toMessage)
                 .toList();
 
-        BatchResponse result = null;
-        try {
-            result = firebaseMessaging.sendEach(messages);
+        BatchResponse result = firebaseMessaging.sendEach(messages);
 
-            log.info("FirebaseMessage send result, successCount = {}, failureCount = {}", result.getSuccessCount(), result.getFailureCount());
-        } catch (FirebaseMessagingException e) {
-            log.warn("Failed send firebase message, cause = {}", e.getMessage(), e);
-        }
+        log.info("FirebaseMessage send result, successCount = {}, failureCount = {}", result.getSuccessCount(), result.getFailureCount());
     }
 }

@@ -1,11 +1,14 @@
 package org.github.guardjo.cloudtype.manager.service;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
+import org.github.guardjo.cloudtype.manager.model.domain.AppPushMsgEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.AppPushTokenEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.vo.FirebaseMessageRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.InactiveServerNotification;
+import org.github.guardjo.cloudtype.manager.repository.AppPushMsgEntityRepository;
+import org.github.guardjo.cloudtype.manager.repository.AppPushTokenEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.util.FirebaseMessageSender;
 import org.github.guardjo.cloudtype.manager.util.TestDataGenerator;
@@ -28,7 +31,7 @@ import static org.mockito.BDDMockito.*;
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceImplTest {
     private final static UserInfoEntity TEST_USER_ENTITY = TestDataGenerator.userInfoEntity("Tester");
-    private final static AppPushTokenEntity TEST_APP_PUSH_TOKEN = TestDataGenerator.appPushTokenEntity("test-token", TEST_USER_ENTITY);
+    private final static AppPushTokenEntity TEST_APP_PUSH_TOKEN = TestDataGenerator.appPushTokenEntity(1L, "test-token", TEST_USER_ENTITY);
     private final static UserInfoEntity TEST_USER_WITH_PUSH_TOKEN = TestDataGenerator.userInfoEntity(TEST_USER_ENTITY, List.of(TEST_APP_PUSH_TOKEN));
 
     @Mock
@@ -36,6 +39,12 @@ class NotificationServiceImplTest {
 
     @Mock
     private ServerInfoEntityRepository serverInfoRepository;
+
+    @Mock
+    private AppPushTokenEntityRepository appPushTokenRepository;
+
+    @Mock
+    private AppPushMsgEntityRepository appPushMsgRepository;
 
     @InjectMocks
     private NotificationServiceImpl notificationService;
@@ -53,7 +62,7 @@ class NotificationServiceImplTest {
                     UserInfoEntity userInfo = serverInfoEntity.getUserInfo();
                     List<InactiveServerNotification> inactiveInfo = new ArrayList<>();
                     for (AppPushTokenEntity appPushToken : userInfo.getAppPushTokens()) {
-                        inactiveInfo.add(new InactiveServerNotification(serverInfoEntity.getId(), serverInfoEntity.getServerName(), userInfo.getUsername(), userInfo.getName(), appPushToken.getToken()));
+                        inactiveInfo.add(new InactiveServerNotification(serverInfoEntity.getId(), serverInfoEntity.getServerName(), userInfo.getUsername(), userInfo.getName(), appPushToken.getId(), appPushToken.getToken()));
                     }
 
                     return inactiveInfo;
@@ -61,14 +70,18 @@ class NotificationServiceImplTest {
                 .flatMap(List::stream)
                 .toList();
         ArgumentCaptor<List<FirebaseMessageRequest>> messageRequestsCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<AppPushMsgEntity>> pushMsgsCaptor = ArgumentCaptor.forClass(List.class);
 
         long expected = serverInfoIds.size();
 
         given(serverInfoRepository.findAllInactiveServerNotifications(eq(serverInfoIds))).willReturn(inactiveServerNotifications);
         willDoNothing().given(messageSender).sendMessage(messageRequestsCaptor.capture());
+        given(appPushTokenRepository.getReferenceById(eq(TEST_APP_PUSH_TOKEN.getId()))).willReturn(TEST_APP_PUSH_TOKEN);
+        willReturn(mock(List.class)).given(appPushMsgRepository).saveAll(pushMsgsCaptor.capture());
 
         long actual = notificationService.sendServerInactiveNotification(serverInfoIds).get();
         List<FirebaseMessageRequest> messageRequests = messageRequestsCaptor.getValue();
+        List<AppPushMsgEntity> appPushMsgEntities = pushMsgsCaptor.getValue();
 
         assertThat(actual).isEqualTo(expected);
         assertThat(messageRequests.size()).isEqualTo(inactiveServerNotifications.size());
@@ -76,12 +89,21 @@ class NotificationServiceImplTest {
         for (int i = 0; i < messageRequests.size(); i++) {
             FirebaseMessageRequest messageRequest = messageRequests.get(i);
             InactiveServerNotification inactiveServerNotification = inactiveServerNotifications.get(i);
+            AppPushMsgEntity appPushMsgEntity = appPushMsgEntities.get(i);
 
             assertThat(messageRequest.targetToken()).isEqualTo(inactiveServerNotification.appPushToken());
             assertThat(messageRequest.body().contains(inactiveServerNotification.serverName())).isTrue();
+            assertThat(appPushMsgEntity).isNotNull();
+
+            assertThat(appPushMsgEntity.getTitle()).isEqualTo(messageRequest.title());
+            assertThat(appPushMsgEntity.getBody()).isEqualTo(messageRequest.body());
+            assertThat(appPushMsgEntity.getAppPushToken().getId()).isEqualTo(messageRequest.targetTokenId());
+            assertThat(appPushMsgEntity.getAppPushToken().getToken()).isEqualTo(messageRequest.targetToken());
         }
 
         then(serverInfoRepository).should().findAllInactiveServerNotifications(eq(serverInfoIds));
         then(messageSender).should().sendMessage(any(List.class));
+        then(appPushTokenRepository).should().getReferenceById(eq(TEST_APP_PUSH_TOKEN.getId()));
+        then(appPushMsgRepository).should().saveAll(any(List.class));
     }
 }
