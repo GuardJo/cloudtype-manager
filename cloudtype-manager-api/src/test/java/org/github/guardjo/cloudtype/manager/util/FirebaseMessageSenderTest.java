@@ -46,7 +46,7 @@ class FirebaseMessageSenderTest {
             String body = "Test body";
 
             List<FirebaseMessageRequest> firebaseMessageRequests = List.of(
-                    new FirebaseMessageRequest(targetToken, title, body)
+                    new FirebaseMessageRequest(1L, targetToken, title, body)
             );
 
             ArgumentCaptor<List<Message>> messageArgumentCaptor = ArgumentCaptor.forClass(List.class);
@@ -79,7 +79,7 @@ class FirebaseMessageSenderTest {
             String title = "Test Title";
             String body = "Test body";
 
-            List<FirebaseMessageRequest> messageRequests = List.of(new FirebaseMessageRequest(targetToken, title, body));
+            List<FirebaseMessageRequest> messageRequests = List.of(new FirebaseMessageRequest(1L, targetToken, title, body));
 
             assertThatCode(() -> firebaseMessageSender.sendMessage(messageRequests))
                     .doesNotThrowAnyException();
