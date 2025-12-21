@@ -45,7 +45,7 @@ public class UserInfoPrincipal implements UserDetails, OAuth2User {
 
     @Override
     public String getPassword() {
-        return userInfo.password();
+        return userInfo.email();
     }
 
     @Override
