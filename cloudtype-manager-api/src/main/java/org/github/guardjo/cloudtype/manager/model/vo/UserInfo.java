@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public record UserInfo(
         String id,
         String name,
-        String password,
+        String email,
         LocalDateTime createAt,
         LocalDateTime modifiedAt
 ) {
