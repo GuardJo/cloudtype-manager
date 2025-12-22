@@ -5,3 +5,6 @@ onlyBuiltDependencies:
 
 ignoredBuiltDependencies:
   - msw
+
+packages:
+  - 'packages/*'

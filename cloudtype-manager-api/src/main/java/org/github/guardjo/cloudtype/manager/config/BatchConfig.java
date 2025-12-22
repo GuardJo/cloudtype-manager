@@ -6,6 +6,7 @@ import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.vo.HealthCheckResult;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.service.HealthCheckService;
+import org.github.guardjo.cloudtype.manager.service.NotificationService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -39,6 +40,7 @@ public class BatchConfig {
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
     private final HealthCheckService healthCheckService;
+    private final NotificationService notificationService;
     private final ServerInfoEntityRepository serverInfoRepository;
     private final TaskExecutor healthCheckExecutor;
 
@@ -111,6 +113,8 @@ public class BatchConfig {
             List<Long> deactivateIds = partitionedIds.getOrDefault(false, List.of());
 
             long updateResult = serverInfoRepository.updateActivateStatus(activateIds, deactivateIds);
+
+            notificationService.sendServerInactiveNotification(deactivateIds);
 
             log.info("Updated server_info activate fields, updateCount = {}", updateResult);
         };

@@ -29,33 +29,56 @@ title: Cloudtype Manager ERD
 ---
 erDiagram
     user_info {
-string username pk
-    string password "not null"
-string name "not null"
+varchar(100) username pk
+varchar(100) password "not null"
+varchar(10) name "not null"
 timestamp createdAt "not null"
 timestamp modifiedAt "not null"
 }
 
 server_info {
 bigint id pk "auto increment"
-string server_name uk "not null"
+varchar(100) server_name uk "not null"
 bool activate "not null"
-string hosting_url
-string management_url "not null"
-string health_check_url "not null"
+varchar(500) hosting_url
+varchar(500) management_url "not null"
+varchar(500) health_check_url "not null"
 timestamp createdAt "not null"
 timestamp modifiedAt "not null"
-string user_id fk "user_info"
+varchar(100) user_id fk "user_info"
 }
 
 refresh_token {
 bigint id pk "auto increment"
-string token uk "not null"
+varchar(512) token uk "not null"
 timestamp createdAt "not null"
 timestamp modifiedAt "not null"
-string user_id fk "user_info"
+varchar(100) user_id fk "user_info"
 }
+
+app_push_token {
+bigint id pk "auto increment"
+varchar(300) token uk "not null"
+varchar(300) device "not null"
+timestamp createdAt "not null"
+timestamp modifiedAt "not null"
+varchar(100) user_id fk "user_info"
+}
+
+app_push_msg {
+bigint id pk "auto increment"
+varchar(100) title "not null"
+varchar(500) body "not null"
+bool push_sent "not null default false"
+bool push_received "not null default false"
+timestamp createdAt "not null"
+timestamp modifiedAt "not null"
+bigint token_id fk "not null"
+ }
 
 user_info ||--o{ server_info: "user_id"
 user_info o|--|{ refresh_token: "user_id"
+user_info ||--o{ app_push_token: "user_id"
+
+app_push_token ||--o{ app_push_msg: "token_id"
 ```

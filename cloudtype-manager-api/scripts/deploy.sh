@@ -14,6 +14,7 @@ export GOOGLE_OAUTH2_CLIENT_SECRET=$(aws ssm get-parameter --name /cloudtype-man
 export GOOGLE_OAUTH2_REDIRECT_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/google-oauth2-redirect-url --query Parameter.Value | sed 's/"//g')
 export JWT_TOKEN_SECRET=$(aws ssm get-parameter --name /cloudtype-manager-params/jwt-token-secret --query Parameter.Value | sed 's/"//g')
 export FRONTEND_AUTH_CALLBACK_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/frontend-auth-callback-url --query Parameter.Value | sed 's/"//g')
+export FIREBASE_CREDENTIALS_PATH=$(aws ssm get-parameter --name /cloudtype-manager-params/firebase-credentials-path --query Parameter.Value | sed 's/"//g')
 
 cd $DEPLOY_PATH
 

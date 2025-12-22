@@ -24,6 +24,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        default_batch_fetch_size: 100
   batch:
     jdbc:
       initialize-schema: never
@@ -49,3 +50,6 @@ cors:
 
 frontend:
   auth-callback-url: "http://localhost:3000/oauth/callback"
+
+firebase:
+  credentials-path: classpath:secrets/firebase-service-account.json

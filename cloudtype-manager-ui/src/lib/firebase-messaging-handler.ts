@@ -52,28 +52,17 @@ class FirebaseMessagingService {
     /**
      * FCM token 밝브
      */
-    public async getFCMToken(): Promise<void> {
+    public async getFCMToken(): Promise<string> {
         if (typeof window === 'undefined') {
-            return
+            return '';
         }
 
         const messaging = this.initMessaging()
         if (!messaging) {
-            return;
+            return '';
         }
 
-        getToken(messaging, {vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY})
-            .then((currentToken) => {
-                if (currentToken) {
-                    console.log('FCM Token:', currentToken)
-                    // TODO FCM token 서버 전송 기능 구현
-                } else {
-                    console.log('No registration token available. Request permission to generate one.')
-                }
-            })
-            .catch((err) => {
-                console.log('An error occurred while retrieving token. ', err)
-            })
+        return getToken(messaging, {vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY})
     }
 
     /**
