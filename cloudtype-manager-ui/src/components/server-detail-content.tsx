@@ -3,8 +3,8 @@
 import ServerRackIllustration from "@/components/server-rack-illustration";
 import ServerStatusBadge from "@/components/server-status-badge";
 import ServerActionsArea from "@/components/server-actions-area";
-import {useQuery} from "@tanstack/react-query";
-import {getServerDetail} from "@/lib/server-api-handler";
+import {useMutation, useQuery} from "@tanstack/react-query";
+import {deleteServer, getServerDetail} from "@/lib/server-api-handler";
 import {notFound, useRouter} from "next/navigation";
 import Loading from "@/app/servers/[serverId]/loading";
 import {Button} from "@/components/ui/button";
@@ -19,6 +19,20 @@ export default function ServerDetailContent({serverId}: ServerDetailContentProps
     const {data, isLoading} = useQuery({
         queryKey: ['getServerDetail', serverId],
         queryFn: () => getServerDetail(serverId)
+    })
+
+    const deleteMutation = useMutation({
+        mutationKey: ['deleteServer', serverId],
+        mutationFn: () => deleteServer(serverId),
+        onSuccess: () => {
+            isShowDeleteConfirmBtn(false)
+            alert('Server Deleted Successfully!')
+            router.replace('/servers')
+        },
+        onError: (e) => {
+            console.error(e)
+            alert(`삭제에 실패하였습니다.\nCause: ${e.message}`)
+        }
     })
 
     if (isLoading) {
@@ -36,9 +50,7 @@ export default function ServerDetailContent({serverId}: ServerDetailContentProps
     const serverDetail = data.data
 
     const confirmDeleteServer = () => {
-        alert('Server Deleted Successfully!')
-        // TODO API 연동
-        router.replace('/servers')
+        deleteMutation.mutate()
     }
 
     return (
