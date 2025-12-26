@@ -14,7 +14,7 @@ import {useState} from "react";
 /* 서버 상세 정보 컨텐츠 */
 export default function ServerDetailContent({serverId}: ServerDetailContentProps) {
     const router = useRouter()
-    const [showDeleteConfirmBtn, isShowDeleteConfirmBtn] = useState<boolean>(false)
+    const [showDeleteConfirmBtn, setShowDeleteConfirmBtn] = useState<boolean>(false)
 
     const {data, isLoading} = useQuery({
         queryKey: ['getServerDetail', serverId],
@@ -25,7 +25,7 @@ export default function ServerDetailContent({serverId}: ServerDetailContentProps
         mutationKey: ['deleteServer', serverId],
         mutationFn: () => deleteServer(serverId),
         onSuccess: () => {
-            isShowDeleteConfirmBtn(false)
+            setShowDeleteConfirmBtn(false)
             alert('Server Deleted Successfully!')
             router.replace('/servers')
         },
@@ -81,22 +81,22 @@ export default function ServerDetailContent({serverId}: ServerDetailContentProps
                             </p>
                             {!showDeleteConfirmBtn ? (
                                 <Button
-                                    onClick={() => isShowDeleteConfirmBtn(true)}
+                                    onClick={() => setShowDeleteConfirmBtn(true)}
                                     className='w-full bg-red-600 hover:bg-red-700 text-white font-medium py-4 text-lg rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center space-x-2'>
                                     <Trash2 className='w-5 h-5'/>
                                     <span>Delete Server</span>
                                 </Button>
                             ) : (
                                 <div className='bg-slate-700 rounded-xl p-4 border-2 border-red-500 animate-fade-in'>
-                                    <p className='text-white fonr-medium mb-4'>Are you sure you want to delete this
+                                    <p className='text-white font-medium mb-4'>Are you sure you want to delete this
                                         server?</p>
                                     <div className='flex space-x-3'>
-                                        <Button onClick={confirmDeleteServer}
-                                                className='flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg transition-all duration-200'>
+                                        <Button onClick={confirmDeleteServer} variant={"destructive"}
+                                                className='flex-1'>
                                             Yes, Delete
                                         </Button>
-                                        <Button onClick={() => isShowDeleteConfirmBtn(false)}
-                                                className='flex-1 bg-slate-600 hover:bg-slate-500 text-white font-medium py-3 rounded-lg transition-all duration-200'>
+                                        <Button onClick={() => setShowDeleteConfirmBtn(false)} variant={"secondary"}
+                                                className='flex-1'>
                                             Cancel
                                         </Button>
                                     </div>
