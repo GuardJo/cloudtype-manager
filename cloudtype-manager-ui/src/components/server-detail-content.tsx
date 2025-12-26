@@ -9,12 +9,13 @@ import {notFound, useRouter} from "next/navigation";
 import Loading from "@/app/servers/[serverId]/loading";
 import {Button} from "@/components/ui/button";
 import {Trash2} from "lucide-react";
-import {useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
 /* 서버 상세 정보 컨텐츠 */
 export default function ServerDetailContent({serverId}: ServerDetailContentProps) {
     const router = useRouter()
     const [showDeleteConfirmBtn, setShowDeleteConfirmBtn] = useState<boolean>(false)
+    const deleteConfirmRef = useRef<HTMLDivElement>(null)
 
     const {data, isLoading} = useQuery({
         queryKey: ['getServerDetail', serverId],
@@ -34,6 +35,17 @@ export default function ServerDetailContent({serverId}: ServerDetailContentProps
             alert(`삭제에 실패하였습니다.\nCause: ${e.message}`)
         }
     })
+
+    useEffect(() => {
+        if (showDeleteConfirmBtn && deleteConfirmRef.current) {
+            setTimeout(() => {
+                deleteConfirmRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                })
+            }, 100)
+        }
+    }, [showDeleteConfirmBtn]);
 
     if (isLoading) {
         return <Loading/>
@@ -87,7 +99,8 @@ export default function ServerDetailContent({serverId}: ServerDetailContentProps
                                     <span>Delete Server</span>
                                 </Button>
                             ) : (
-                                <div className='bg-slate-700 rounded-xl p-4 border-2 border-red-500 animate-fade-in'>
+                                <div ref={deleteConfirmRef}
+                                     className='bg-slate-700 rounded-xl p-4 border-2 border-red-500 animate-fade-in'>
                                     <p className='text-white font-medium mb-4'>Are you sure you want to delete this
                                         server?</p>
                                     <div className='flex space-x-3'>
