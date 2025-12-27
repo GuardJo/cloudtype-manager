@@ -3,7 +3,7 @@
 import ServerRackIllustration from "@/components/server-rack-illustration";
 import ServerStatusBadge from "@/components/server-status-badge";
 import ServerActionsArea from "@/components/server-actions-area";
-import {useMutation, useQuery} from "@tanstack/react-query";
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {deleteServer, getServerDetail} from "@/lib/server-api-handler";
 import {notFound, useRouter} from "next/navigation";
 import Loading from "@/app/servers/[serverId]/loading";
@@ -14,8 +14,10 @@ import {useEffect, useRef, useState} from "react";
 /* 서버 상세 정보 컨텐츠 */
 export default function ServerDetailContent({serverId}: ServerDetailContentProps) {
     const router = useRouter()
-    const [showDeleteConfirmBtn, setShowDeleteConfirmBtn] = useState<boolean>(false)
+    const queryClient = useQueryClient()
     const deleteConfirmRef = useRef<HTMLDivElement>(null)
+
+    const [showDeleteConfirmBtn, setShowDeleteConfirmBtn] = useState<boolean>(false)
 
     const {data, isLoading} = useQuery({
         queryKey: ['getServerDetail', serverId],
@@ -27,7 +29,7 @@ export default function ServerDetailContent({serverId}: ServerDetailContentProps
         mutationFn: () => deleteServer(serverId),
         onSuccess: () => {
             setShowDeleteConfirmBtn(false)
-            alert('Server Deleted Successfully!')
+            queryClient.invalidateQueries({queryKey: ['getServers']})
             router.replace('/servers')
         },
         onError: (e) => {
