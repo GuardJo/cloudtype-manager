@@ -39,3 +39,15 @@ export async function addServer(addParams: ServerAddParams): Promise<BaseRespons
 
     return validateResponse(response, addServer, addParams);
 }
+
+/**
+ * 서버 삭제 API 요청
+ */
+export async function deleteServer(serverId: number): Promise<BaseResponse<string>> {
+    const response = await fetch(`${apiUrl}/api/v1/servers/${serverId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    })
+
+    return validateResponse(response, deleteServer, serverId);
+}

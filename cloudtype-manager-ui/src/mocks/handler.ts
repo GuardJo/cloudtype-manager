@@ -100,5 +100,14 @@ export const handlers = [
         }
 
         return HttpResponse.json(successes);
+    }),
+    http.delete(`${mockApiServerUrl}/api/v1/servers/:id`, () => {
+        const successes: BaseResponse<string> = {
+            statusCode: 200,
+            status: 'OK',
+            data: 'Successes'
+        }
+
+        return HttpResponse.json(successes);
     })
 ]
