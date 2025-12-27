@@ -32,7 +32,7 @@ export default function ServerDetailContent({serverId}: ServerDetailContentProps
         },
         onError: (e) => {
             console.error(e)
-            alert(`삭제에 실패하였습니다.\nCause: ${e.message}`)
+            alert(`Failed delete server\nCause: ${e.message}`)
         }
     })
 
