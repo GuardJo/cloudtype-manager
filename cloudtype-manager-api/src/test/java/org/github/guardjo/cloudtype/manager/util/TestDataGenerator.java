@@ -60,4 +60,13 @@ public class TestDataGenerator {
                 .userInfo(userInfo)
                 .build();
     }
+
+    public static AppPushTokenEntity appPushTokenEntity(String token, String deviceId, UserInfoEntity userInfo) {
+        return AppPushTokenEntity
+                .builder()
+                .token(token)
+                .device(deviceId)
+                .userInfo(userInfo)
+                .build();
+    }
 }
