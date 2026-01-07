@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,16 @@ public class AppPushServiceImpl implements AppPushService {
 
                     log.info("Save new AppPushToken Entity, id = {}", newAppPushToken.getId());
                 });
+    }
+
+    @Override
+    public String getAppPushToken(String userId, String deviceId) {
+        return appPushTokenRepository.findByDeviceAndUserInfo_Username(deviceId, userId)
+                .orElseThrow(() -> {
+                    log.warn("Not found fcm-token, userId = {}, deviceId = {}", userId, deviceId);
+                    return new EntityNotFoundException(String.format("Not found fcm-token, userId = %s, deviceId = %s", userId, deviceId));
+                })
+                .getToken();
     }
 
     /*

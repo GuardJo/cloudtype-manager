@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.github.guardjo.cloudtype.manager.model.domain.AppPushTokenEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.request.AppPushTokenRequest;
@@ -10,6 +11,8 @@ import org.github.guardjo.cloudtype.manager.util.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -90,5 +93,28 @@ class AppPushServiceTest {
 
         then(userInfoEntityRepository).should().getReferenceById(eq(userInfo.id()));
         then(appPushTokenEntityRepository).should().findByToken(eq(token));
+    }
+
+    @DisplayName("회원 및 디바이스 별 앱푸시 토큰 조회")
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void test_getAppPushToken(boolean hasData) {
+        String pushToken = "test-token";
+        String deviceId = "test-device";
+        String userId = TESTE_USER_ENTITY.getUsername();
+
+        AppPushTokenEntity expected = TestDataGenerator.appPushTokenEntity(pushToken, deviceId, TESTE_USER_ENTITY);
+
+        if (hasData) {
+            given(appPushTokenEntityRepository.findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId))).willReturn(Optional.of(expected));
+            String actual = appPushService.getAppPushToken(userId, deviceId);
+            assertThat(actual).isEqualTo(pushToken);
+        } else {
+            given(appPushTokenEntityRepository.findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId))).willReturn(Optional.empty());
+            assertThatCode(() -> appPushService.getAppPushToken(userId, deviceId))
+                    .isInstanceOf(EntityNotFoundException.class);
+        }
+
+        then(appPushTokenEntityRepository).should().findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId));
     }
 }
