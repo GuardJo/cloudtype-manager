@@ -5,23 +5,12 @@ import org.github.guardjo.cloudtype.manager.model.domain.RefreshTokenEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 
-import java.util.List;
-
 public class TestDataGenerator {
     public static UserInfoEntity userInfoEntity(String username) {
         return UserInfoEntity.builder()
                 .username(username)
                 .name("Tester")
                 .password("1234")
-                .build();
-    }
-
-    public static UserInfoEntity userInfoEntity(UserInfoEntity userInfo, List<AppPushTokenEntity> appPushTokenEntityList) {
-        return UserInfoEntity.builder()
-                .username(userInfo.getUsername())
-                .name(userInfo.getName())
-                .password(userInfo.getPassword())
-                .appPushTokens(appPushTokenEntityList)
                 .build();
     }
 
@@ -68,6 +57,15 @@ public class TestDataGenerator {
                 .id(id)
                 .token(token)
                 .device("WEB")
+                .userInfo(userInfo)
+                .build();
+    }
+
+    public static AppPushTokenEntity appPushTokenEntity(String token, String deviceId, UserInfoEntity userInfo) {
+        return AppPushTokenEntity
+                .builder()
+                .token(token)
+                .device(deviceId)
                 .userInfo(userInfo)
                 .build();
     }

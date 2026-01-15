@@ -53,7 +53,8 @@ public class ServerInfoQueryRepositoryImpl extends QuerydslRepositorySupport imp
 
         return from(qServerInfoEntity)
                 .innerJoin(qServerInfoEntity.userInfo, qUserInfoEntity)
-                .innerJoin(qUserInfoEntity.appPushTokens, qAppPushTokenEntity)
+                .innerJoin(qAppPushTokenEntity)
+                .on(qAppPushTokenEntity.userInfo.eq(qUserInfoEntity))
                 .where(qServerInfoEntity.id.in(serverIds))
                 .select(Projections.constructor(
                         InactiveServerNotification.class,

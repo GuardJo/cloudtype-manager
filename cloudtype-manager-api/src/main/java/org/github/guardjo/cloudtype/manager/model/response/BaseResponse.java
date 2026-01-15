@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @Builder
 @Getter
 @ToString
+@EqualsAndHashCode(of = {"statusCode", "status", "data"})
 public class BaseResponse<T> {
     private int statusCode;
     private String status;

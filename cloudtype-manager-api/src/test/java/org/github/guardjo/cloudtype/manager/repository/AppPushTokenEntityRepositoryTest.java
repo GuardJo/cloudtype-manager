@@ -58,7 +58,6 @@ class AppPushTokenEntityRepositoryTest {
     @Test
     void test_findByToken() {
         String newToken = "test-token";
-        String username = TEST_USER.getUsername();
 
         AppPushTokenEntity expected = AppPushTokenEntity.builder()
                 .token(newToken)
@@ -71,5 +70,18 @@ class AppPushTokenEntityRepositoryTest {
 
         AppPushTokenEntity actual = appPushTokenRepository.findByToken(newToken).orElseThrow();
         assertThat(actual).isEqualTo(expected);
+    }
+
+    @DisplayName("deviceId와 회원 식별키를 기반으로 AppPushToken Entity 조회")
+    @Test
+    void test_findByDeviceAndUserInfo_Username() {
+        String deviceId = "TEST_WEB";
+        String testToken = "test-token";
+        AppPushTokenEntity appPushTokenEntity = appPushTokenRepository.save(TestDataGenerator.appPushTokenEntity(testToken, deviceId, TEST_USER));
+
+        AppPushTokenEntity actual = appPushTokenRepository.findByDeviceAndUserInfo_Username(deviceId, TEST_USER.getUsername()).orElseThrow();
+
+        assertThat(actual).isNotNull();
+        assertThat(actual).isEqualTo(appPushTokenEntity);
     }
 }

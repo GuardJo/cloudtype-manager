@@ -14,4 +14,14 @@ public interface AppPushService {
      * @param userInfo     요청 회원 정보
      */
     void saveAppPushToken(AppPushTokenRequest tokenRequest, UserInfo userInfo);
+
+    /**
+     * 주어진 회원ID와 device 정보에 해당하는 앱푸시토큰 정보를 반환한다.
+     *
+     * @param userId   회원 ID (username)
+     * @param deviceId 디바이스 식별키
+     * @return firebase app push token 값
+     * @throws jakarta.persistence.EntityNotFoundException 해당하는 Entity가 존재하지 않을 경우
+     */
+    String getAppPushToken(String userId, String deviceId);
 }

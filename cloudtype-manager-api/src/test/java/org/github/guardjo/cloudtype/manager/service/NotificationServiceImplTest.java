@@ -32,7 +32,6 @@ import static org.mockito.BDDMockito.*;
 class NotificationServiceImplTest {
     private final static UserInfoEntity TEST_USER_ENTITY = TestDataGenerator.userInfoEntity("Tester");
     private final static AppPushTokenEntity TEST_APP_PUSH_TOKEN = TestDataGenerator.appPushTokenEntity(1L, "test-token", TEST_USER_ENTITY);
-    private final static UserInfoEntity TEST_USER_WITH_PUSH_TOKEN = TestDataGenerator.userInfoEntity(TEST_USER_ENTITY, List.of(TEST_APP_PUSH_TOKEN));
 
     @Mock
     private FirebaseMessageSender messageSender;
@@ -52,7 +51,7 @@ class NotificationServiceImplTest {
     @DisplayName("서버 비활성화 알림 테스트")
     @Test
     void test_sendServerInactiveNotification() throws FirebaseMessagingException, ExecutionException, InterruptedException {
-        List<ServerInfoEntity> serverInfoEntities = List.of(TestDataGenerator.serverInfoEntity(1L, "server1", TEST_USER_WITH_PUSH_TOKEN));
+        List<ServerInfoEntity> serverInfoEntities = List.of(TestDataGenerator.serverInfoEntity(1L, "server1", TEST_USER_ENTITY));
         List<Long> serverInfoIds = serverInfoEntities.stream()
                 .mapToLong(ServerInfoEntity::getId)
                 .boxed()
@@ -61,7 +60,7 @@ class NotificationServiceImplTest {
                 .map(serverInfoEntity -> {
                     UserInfoEntity userInfo = serverInfoEntity.getUserInfo();
                     List<InactiveServerNotification> inactiveInfo = new ArrayList<>();
-                    for (AppPushTokenEntity appPushToken : userInfo.getAppPushTokens()) {
+                    for (AppPushTokenEntity appPushToken : List.of(TEST_APP_PUSH_TOKEN)) {
                         inactiveInfo.add(new InactiveServerNotification(serverInfoEntity.getId(), serverInfoEntity.getServerName(), userInfo.getUsername(), userInfo.getName(), appPushToken.getId(), appPushToken.getToken()));
                     }
 
