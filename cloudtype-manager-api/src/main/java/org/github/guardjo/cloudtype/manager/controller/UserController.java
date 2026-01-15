@@ -1,6 +1,5 @@
 package org.github.guardjo.cloudtype.manager.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
@@ -31,7 +30,7 @@ public class UserController implements UserApiDoc {
 
     @GetMapping("/me/fcm-token")
     @Override
-    public BaseResponse<String> getMyFCMToken(@AuthenticationPrincipal UserInfoPrincipal principal, @Valid @RequestParam("deviceId") String deviceId) {
+    public BaseResponse<String> getMyFCMToken(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestParam("deviceId") String deviceId) {
         log.info("GET : /api/v1/users/me/fcm-token, username = {}, deviceId = {}", principal.getUsername(), deviceId);
 
         return BaseResponse.of(HttpStatus.OK, appPushService.getAppPushToken(principal.getUsername(), deviceId));
