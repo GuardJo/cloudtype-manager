@@ -21,6 +21,7 @@ public interface AppPushService {
      * @param userId   회원 ID (username)
      * @param deviceId 디바이스 식별키
      * @return firebase app push token 값
+     * @throws jakarta.persistence.EntityNotFoundException 해당하는 Entity가 존재하지 않을 경우
      */
     String getAppPushToken(String userId, String deviceId);
 }
