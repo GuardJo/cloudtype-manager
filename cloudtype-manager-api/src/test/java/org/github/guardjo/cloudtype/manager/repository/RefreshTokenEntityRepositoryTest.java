@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,5 +49,22 @@ class RefreshTokenEntityRepositoryTest {
         RefreshTokenEntity actual = refreshTokenEntityRepository.findByToken(token).orElseThrow();
 
         assertThat(actual).isEqualTo(expected);
+    }
+
+    @DisplayName("특정 일자 기준으로 마지막 수정일자가 해당 일자 이전인 refresh_token Entity 삭제")
+    @Test
+    void test_deleteAllByModifiedAtBefore() {
+        RefreshTokenEntity lastWeekToken = TestDataGenerator.refreshTokenEntity("refresh-token1", TEST_USER);
+
+        LocalDateTime lastWeekDateTime = LocalDateTime.now().minusDays(8L);
+        lastWeekToken.setModifiedAt(lastWeekDateTime);
+
+        refreshTokenEntityRepository.save(lastWeekToken);
+
+        long initRows = refreshTokenEntityRepository.count();
+        long lastWeekClearRows = refreshTokenEntityRepository.deleteAllByModifiedAtBefore(LocalDateTime.now().minusWeeks(1L));
+
+        assertThat(initRows).isEqualTo(2L);
+        assertThat(lastWeekClearRows).isEqualTo(1L);
     }
 }
