@@ -16,16 +16,30 @@ import org.springframework.stereotype.Component;
 public class BatchScheduler {
     private final JobLauncher jobLauncher;
     private final Job updateAllServerStatusJob;
+    private final Job cleanupRefreshTokenJob;
 
     @Scheduled(initialDelay = 10_000L, fixedDelay = 60_000L)
     public void runUpdateAllServerStatusJob() {
         log.info("Running updateAllServerStatusJob");
-        
+
         try {
             JobExecution execution = jobLauncher.run(updateAllServerStatusJob, new JobParametersBuilder()
                     .addLong("time", System.currentTimeMillis())
                     .toJobParameters());
             log.info("Finished updateAllServerStatusJob, status = {}", execution.getStatus());
+        } catch (JobExecutionException e) {
+            log.error("Failed execute batch job, cause = {}", e.getMessage(), e);
+        }
+    }
+
+    @Scheduled(cron = "0 0 3 * * *")
+    public void runCleanupRefreshTokenJob() {
+        log.info("Running cleanupRefreshTokenJob");
+
+        try {
+            JobExecution execution = jobLauncher.run(cleanupRefreshTokenJob, new JobParametersBuilder()
+                    .addLong("time", System.currentTimeMillis())
+                    .toJobParameters());
         } catch (JobExecutionException e) {
             log.error("Failed execute batch job, cause = {}", e.getMessage(), e);
         }
