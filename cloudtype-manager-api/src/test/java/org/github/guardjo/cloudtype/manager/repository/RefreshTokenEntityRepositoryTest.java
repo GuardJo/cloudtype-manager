@@ -58,9 +58,9 @@ class RefreshTokenEntityRepositoryTest {
         refreshTokenEntityRepository.save(newRefreshToken);
 
         long initRows = refreshTokenEntityRepository.count();
-        int lastWeekClearRows = refreshTokenEntityRepository.deleteAllByModifiedAtBefore(newRefreshToken.getModifiedAt());
+        int clearRows = refreshTokenEntityRepository.deleteAllByModifiedAtBefore(newRefreshToken.getModifiedAt());
 
         assertThat(initRows).isEqualTo(2L);
-        assertThat(lastWeekClearRows).isEqualTo(1);
+        assertThat(clearRows).isEqualTo(1);
     }
 }

@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BatchConfig {
     private final static int CHUNK_SIZE = 1_000;
+    private final static long CLEAR_REFRESH_TOKEN_EXPIRED_WEEK = 1L; // refresh-token의 만료 기한 (1주일)
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
@@ -142,7 +143,7 @@ public class BatchConfig {
     @Bean
     public Tasklet cleanupRefreshTokenTasklet() {
         return ((contribution, chunkContext) -> {
-            LocalDateTime expiredAt = LocalDateTime.now().minusWeeks(1L);
+            LocalDateTime expiredAt = LocalDateTime.now().minusWeeks(CLEAR_REFRESH_TOKEN_EXPIRED_WEEK);
             int deletedRows = refreshTokenEntityRepository.deleteAllByModifiedAtBefore(expiredAt);
 
             log.info("Cleanup expired refreshTokens, deletedRows = {}", deletedRows);
