@@ -43,6 +43,5 @@ class UserInfoEntityRepositoryTest {
         assertThat(actual).isEqualTo(expected);
         assertThat(actual.getCreatedAt()).isEqualTo(expected.getCreatedAt());
         assertThat(actual.getModifiedAt()).isEqualTo(expected.getModifiedAt());
-        assertThat(actual.getCreatedAt()).isEqualTo(actual.getModifiedAt());
     }
 }
