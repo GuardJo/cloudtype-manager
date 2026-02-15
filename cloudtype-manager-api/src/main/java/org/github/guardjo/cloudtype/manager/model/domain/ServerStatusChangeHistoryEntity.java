@@ -5,14 +5,14 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Table(name = "server_health_check_run")
+@Table(name = "server_status_change_history")
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Getter
 @EqualsAndHashCode(of = {"id", "checkedAt", "server", "statusCode"}, callSuper = false)
-public class ServerHealthCheckRunEntity extends BaseEntity {
+public class ServerStatusChangeHistoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

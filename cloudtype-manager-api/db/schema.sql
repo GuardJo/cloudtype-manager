@@ -14,9 +14,9 @@ comment on sequence app_push_token_id_seq is '앱 푸시 토큰 식별키 시퀀
 create sequence app_push_msg_seq;
 comment on sequence app_push_msg_seq is '앱 푸시 메시지 식별키 시퀀스';
 
--- server_health_check_run ID sequence
-create sequence server_health_check_run_sequence;
-comment on sequence server_health_check_run_sequence is '서버 헬스체크 실행 식별키 시퀀스';
+-- server_status_change_history ID sequence
+create sequence server_status_change_history_sequence;
+comment on sequence server_status_change_history_sequence is '서버 상태 변경 이력 식별키 시퀀스';
 
 -- 사용자 정보
 create table user_info
@@ -119,9 +119,10 @@ comment on column app_push_msg.created_at is '생성일자';
 comment on column app_push_msg.modified_at is '수정일자';
 comment on column app_push_msg.token_id is 'app_push_token 외래키';
 
-create table server_health_check_run
+-- server 상태 변경 이력 정보
+create table server_status_change_history
 (
-    id                bigint primary key default nextval('server_health_check_run_sequence'),
+    id                bigint primary key default nextval('server_status_change_history_sequence'),
     checked_at        timestamp not null default current_timestamp,
     is_up             bool      not null,
     status_code       int,
@@ -132,25 +133,23 @@ create table server_health_check_run
     stacktrace_text   text,
     response_body     text,
     response_headers  text,
-    created_at        timestamp not null default current_timestamp,
     server_id         bigint    not null,
     foreign key (server_id) references server_info (id)
 );
 
-comment on table server_health_check_run is '서버 활성화 여부 확인 이력 관리';
-comment on column server_health_check_run.id is '식별키';
-comment on column server_health_check_run.checked_at is '활성화 여부 식별 시점';
-comment on column server_health_check_run.is_up is '활성화 여부';
-comment on column server_health_check_run.status_code is '응답 상태 코드';
-comment on column server_health_check_run.response_time_ms is '응답 시간';
-comment on column server_health_check_run.error_category is '에러 카테고리';
-comment on column server_health_check_run.exception_class is '예외 클래스';
-comment on column server_health_check_run.exception_message is '예외 메시지';
-comment on column server_health_check_run.stacktrace_text is '스택트레이스';
-comment on column server_health_check_run.response_body is '응답 바디';
-comment on column server_health_check_run.response_headers is '응답 헤더';
-comment on column server_health_check_run.created_at is '생성 일시';
-comment on column server_health_check_run.server_id is 'server_info 외래키';
+comment on table server_status_change_history is '서버 활성 상태 변경 이력 관리';
+comment on column server_status_change_history.id is '식별키';
+comment on column server_status_change_history.checked_at is '서버 상태 식별 시점';
+comment on column server_status_change_history.is_up is '활성화 여부';
+comment on column server_status_change_history.status_code is '응답 상태 코드';
+comment on column server_status_change_history.response_time_ms is '응답 시간';
+comment on column server_status_change_history.error_category is '에러 카테고리';
+comment on column server_status_change_history.exception_class is '예외 클래스';
+comment on column server_status_change_history.exception_message is '예외 메시지';
+comment on column server_status_change_history.stacktrace_text is '스택트레이스';
+comment on column server_status_change_history.response_body is '응답 바디';
+comment on column server_status_change_history.response_headers is '응답 헤더';
+comment on column server_status_change_history.server_id is 'server_info 외래키';
 
 -- spring batch
 

@@ -76,7 +76,7 @@ timestamp modified_at "not null"
 bigint token_id fk "not null"
  }
 
-server_health_check_run {
+server_status_change_history {
 bigint id pk "auto increment"
 timestamp checked_at "not null default now"
 bool is_up "not null"
@@ -88,9 +88,8 @@ varchar(2000) exception_message
 text stacktrace_text
 text response_body
 text response_headers
-timestamp created_at
 bigint server_id fk "not null"
-}
+ }
 
 user_info ||--o{ server_info: "user_id"
 user_info o|--|{ refresh_token: "user_id"
@@ -98,5 +97,5 @@ user_info ||--o{ app_push_token: "user_id"
 
 app_push_token ||--o{ app_push_msg: "token_id"
 
-server_info o|--|{ server_health_check_run: "server_id"
+server_info o|--|{ server_status_change_history: "server_id"
 ```
