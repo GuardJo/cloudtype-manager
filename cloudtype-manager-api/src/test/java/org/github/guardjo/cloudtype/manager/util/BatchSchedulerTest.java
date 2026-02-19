@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
@@ -76,12 +76,12 @@ class BatchSchedulerTest {
                 .addLong("time", System.currentTimeMillis())
                 .toJobParameters();
 
-        given(healthCheckService.isServerActive(anyString())).willReturn(CompletableFuture.completedFuture(true));
+        given(healthCheckService.isServerActive(any(ServerInfoEntity.class))).willReturn(CompletableFuture.completedFuture(true));
 
         JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
 
         assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
 
-        then(healthCheckService).should(times(SERVER_INFOS.size())).isServerActive(anyString());
+        then(healthCheckService).should(times(SERVER_INFOS.size())).isServerActive(any(ServerInfoEntity.class));
     }
 }

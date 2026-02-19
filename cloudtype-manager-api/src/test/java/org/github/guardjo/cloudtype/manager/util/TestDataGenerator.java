@@ -35,6 +35,18 @@ public class TestDataGenerator {
                 .build();
     }
 
+    public static ServerInfoEntity serverInfoEntity(Long serverId, String serverName, String healthCheckUrl, boolean activate, UserInfoEntity userInfo) {
+        return ServerInfoEntity.builder()
+                .id(serverId)
+                .serverName(serverName)
+                .healthCheckUrl(healthCheckUrl)
+                .hostingUrl(healthCheckUrl)
+                .managementUrl(healthCheckUrl)
+                .activate(activate)
+                .userInfo(userInfo)
+                .build();
+    }
+
     public static RefreshTokenEntity refreshTokenEntity(String refreshToken, UserInfoEntity userInfo) {
         return RefreshTokenEntity.builder()
                 .token(refreshToken)
