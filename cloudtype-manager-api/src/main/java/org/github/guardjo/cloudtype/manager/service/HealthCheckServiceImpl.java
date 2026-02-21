@@ -69,6 +69,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 .server(serverInfo)
                 .isUp(currentStatus)
                 .statusCode(clientResponse.getStatusCode().value())
+                .errorCategory(clientResponse.getStatusText())
                 .responseBody(clientResponse.bodyTo(String.class))
                 .responseHeaders(String.valueOf(clientResponse.getHeaders()))
                 .build();
@@ -83,7 +84,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         ServerStatusChangeHistoryEntity serverStatusChangeHistoryEntity = ServerStatusChangeHistoryEntity.builder()
                 .server(serverInfo)
                 .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .errorCategory(e.getMessage())
+                .errorCategory(HttpStatus.INTERNAL_SERVER_ERROR.name())
                 .exceptionClass(e.getClass().getName())
                 .exceptionMessage(e.getMessage())
                 .stacktraceText(Arrays.toString(e.getStackTrace()))
