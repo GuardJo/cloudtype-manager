@@ -4,16 +4,23 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.domain.ServerStatusChangeHistoryEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerDetail;
+import org.github.guardjo.cloudtype.manager.model.vo.ServerStatusChangeHistorySummary;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
+import org.github.guardjo.cloudtype.manager.repository.ServerStatusChangeHistoryEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -23,6 +30,7 @@ import java.util.List;
 public class ServerManagementServiceImpl implements ServerManagementService {
     private final ServerInfoEntityRepository serverInfoRepository;
     private final UserInfoEntityRepository userInfoRepository;
+    private final ServerStatusChangeHistoryEntityRepository serverStatusChangeHistoryRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -78,6 +86,22 @@ public class ServerManagementServiceImpl implements ServerManagementService {
         serverInfoRepository.delete(serverInfoEntity);
 
         log.debug("Deleted server, serverId = {}", serverInfoEntity.getId());
+    }
+
+    @Override
+    public List<ServerStatusChangeHistorySummary> findAllServerStatusChangeHistories(String userId, int pageNumber, int pageSize) {
+        log.debug("Find all serverStatusChangeHistories, userId = {}, pageNumber = {}, pageSize = {}", userId, pageNumber, pageSize);
+
+        if (!StringUtils.hasText(userId)) {
+            log.warn("Wrong parameter, userId is Empty");
+            throw new IllegalArgumentException("userId parameter is Wrong");
+        }
+
+        Page<ServerStatusChangeHistoryEntity> serverStatusChangeHistoryEntityPage = serverStatusChangeHistoryRepository.findAllByServer_UserInfo_Username(userId, PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "checkedAt")));
+
+        return serverStatusChangeHistoryEntityPage.get()
+                .map(ServerStatusChangeHistorySummary::of)
+                .toList();
     }
 
     /*

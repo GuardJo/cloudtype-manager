@@ -1,9 +1,6 @@
 package org.github.guardjo.cloudtype.manager.util;
 
-import org.github.guardjo.cloudtype.manager.model.domain.AppPushTokenEntity;
-import org.github.guardjo.cloudtype.manager.model.domain.RefreshTokenEntity;
-import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
-import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.domain.*;
 
 public class TestDataGenerator {
     public static UserInfoEntity userInfoEntity(String username) {
@@ -79,6 +76,14 @@ public class TestDataGenerator {
                 .token(token)
                 .device(deviceId)
                 .userInfo(userInfo)
+                .build();
+    }
+
+    public static ServerStatusChangeHistoryEntity serverStatusChangeHistoryEntity(ServerInfoEntity serverInfo) {
+        return ServerStatusChangeHistoryEntity.builder()
+                .server(serverInfo)
+                .statusCode(400)
+                .errorCategory("BAD_REQUEST")
                 .build();
     }
 }

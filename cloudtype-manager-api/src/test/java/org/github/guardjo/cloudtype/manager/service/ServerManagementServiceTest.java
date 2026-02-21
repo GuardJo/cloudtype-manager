@@ -2,26 +2,34 @@ package org.github.guardjo.cloudtype.manager.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.domain.ServerStatusChangeHistoryEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerDetail;
+import org.github.guardjo.cloudtype.manager.model.vo.ServerStatusChangeHistorySummary;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
+import org.github.guardjo.cloudtype.manager.repository.ServerStatusChangeHistoryEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.util.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
@@ -39,6 +47,9 @@ class ServerManagementServiceTest {
 
     @Mock
     private UserInfoEntityRepository userInfoRepository;
+
+    @Mock
+    private ServerStatusChangeHistoryEntityRepository serverStatusChangeHistoryRepository;
 
     @InjectMocks
     private ServerManagementServiceImpl serverManagementService;
@@ -165,5 +176,49 @@ class ServerManagementServiceTest {
                 .isInstanceOf(AccessDeniedException.class);
 
         then(serverInfoRepository).should().findById(eq(serverId));
+    }
+
+    @DisplayName("특정 회원의 서버 상태 이력 변경 목록 조회")
+    @ParameterizedTest
+    @MethodSource("getServerStatusChangeHistoryEntities")
+    void test_findAllServerStatusChangeHistories(List<ServerStatusChangeHistoryEntity> historyEntities) {
+        String userId = TEST_USER.getUsername();
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "checkedAt"));
+
+        Page<ServerStatusChangeHistoryEntity> mockHistories = new PageImpl<>(historyEntities, pageable, historyEntities.size());
+
+        given(serverStatusChangeHistoryRepository.findAllByServer_UserInfo_Username(eq(userId), eq(pageable))).willReturn(mockHistories);
+
+        List<ServerStatusChangeHistorySummary> actual = serverManagementService.findAllServerStatusChangeHistories(userId, pageable.getPageNumber(), pageable.getPageSize());
+        assertThat(actual).isNotNull();
+        assertThat(actual.isEmpty()).isEqualTo(historyEntities.isEmpty());
+        assertThat(actual.size()).isEqualTo(historyEntities.size());
+
+        for (int i = 0; i < actual.size(); i++) {
+            ServerStatusChangeHistorySummary actualItem = actual.get(i);
+            ServerStatusChangeHistoryEntity expectedItem = historyEntities.get(i);
+
+            assertThat(actualItem.statusChangeHistoryId()).isEqualTo(expectedItem.getId());
+            assertThat(actualItem.status()).isEqualTo(expectedItem.isUp());
+            assertThat(actualItem.checkedAt()).isEqualTo(expectedItem.getCheckedAt());
+            assertThat(actualItem.serverName()).isEqualTo(expectedItem.getServer().getServerName());
+            assertThat(actualItem.healthCheckUrl()).isEqualTo(expectedItem.getServer().getHealthCheckUrl());
+        }
+
+        then(serverStatusChangeHistoryRepository).should().findAllByServer_UserInfo_Username(eq(userId), eq(pageable));
+    }
+
+    private static Stream<Arguments> getServerStatusChangeHistoryEntities() {
+
+        ServerInfoEntity serverInfo = TestDataGenerator.serverInfoEntity("TestServer", TEST_USER);
+        List<ServerStatusChangeHistoryEntity> histories = List.of(
+                TestDataGenerator.serverStatusChangeHistoryEntity(serverInfo),
+                TestDataGenerator.serverStatusChangeHistoryEntity(serverInfo)
+        );
+
+        return Stream.of(
+                Arguments.of(List.of()),
+                Arguments.of(histories)
+        );
     }
 }
