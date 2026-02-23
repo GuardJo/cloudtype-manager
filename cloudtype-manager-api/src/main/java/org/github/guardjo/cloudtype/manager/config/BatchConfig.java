@@ -104,7 +104,7 @@ public class BatchConfig {
     @Bean
     public ItemProcessor<ServerInfoEntity, HealthCheckResult> serverInfoItemProcessor() {
         return (server) -> {
-            boolean newStatus = healthCheckService.isServerActive(server.getHealthCheckUrl()).join();
+            boolean newStatus = healthCheckService.isServerActive(server).join();
 
             if (server.isActivate() != newStatus) {
                 return new HealthCheckResult(server.getId(), newStatus);

@@ -1,9 +1,6 @@
 package org.github.guardjo.cloudtype.manager.util;
 
-import org.github.guardjo.cloudtype.manager.model.domain.AppPushTokenEntity;
-import org.github.guardjo.cloudtype.manager.model.domain.RefreshTokenEntity;
-import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
-import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.domain.*;
 
 public class TestDataGenerator {
     public static UserInfoEntity userInfoEntity(String username) {
@@ -31,6 +28,18 @@ public class TestDataGenerator {
                 .healthCheckUrl("https://google.com")
                 .hostingUrl("https://github.com")
                 .managementUrl("https://cloudtype.io")
+                .userInfo(userInfo)
+                .build();
+    }
+
+    public static ServerInfoEntity serverInfoEntity(Long serverId, String serverName, String healthCheckUrl, boolean activate, UserInfoEntity userInfo) {
+        return ServerInfoEntity.builder()
+                .id(serverId)
+                .serverName(serverName)
+                .healthCheckUrl(healthCheckUrl)
+                .hostingUrl(healthCheckUrl)
+                .managementUrl(healthCheckUrl)
+                .activate(activate)
                 .userInfo(userInfo)
                 .build();
     }
@@ -67,6 +76,14 @@ public class TestDataGenerator {
                 .token(token)
                 .device(deviceId)
                 .userInfo(userInfo)
+                .build();
+    }
+
+    public static ServerStatusChangeHistoryEntity serverStatusChangeHistoryEntity(ServerInfoEntity serverInfo) {
+        return ServerStatusChangeHistoryEntity.builder()
+                .server(serverInfo)
+                .statusCode(400)
+                .errorCategory("BAD_REQUEST")
                 .build();
     }
 }

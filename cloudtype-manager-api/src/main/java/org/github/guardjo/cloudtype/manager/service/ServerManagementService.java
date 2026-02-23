@@ -2,6 +2,7 @@ package org.github.guardjo.cloudtype.manager.service;
 
 import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerDetail;
+import org.github.guardjo.cloudtype.manager.model.vo.ServerStatusChangeHistorySummary;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 
@@ -42,4 +43,16 @@ public interface ServerManagementService {
      * @param userInfo 계정 정보 VO
      */
     void deleteMyServer(Long serverId, UserInfo userInfo);
+
+    /**
+     * 주어진 회원 식별키에 해당하는 회원이 관리 중인 서버의 상태 변경 이력 목록을 조회한다.
+     * <hr/>
+     * <i>이 때, 인자로 주어진 페이지 숫자와 페이지 크기를 기반으로 페이지네이션 처리</i>
+     *
+     * @param userId     회원 아이디
+     * @param pageNumber 페이지 수
+     * @param pageSize   페이키 크기
+     * @return 서버 상태 변경 이력 목록
+     */
+    List<ServerStatusChangeHistorySummary> findAllServerStatusChangeHistories(String userId, int pageNumber, int pageSize);
 }

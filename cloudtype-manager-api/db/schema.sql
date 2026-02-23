@@ -1,11 +1,22 @@
 -- 관리 서버 ID sequence
 create sequence server_info_id_seq;
+comment on sequence server_info_id_seq is '서버 정보 식별키 시퀀스';
+
 -- refresh_token ID sequence
 create sequence refresh_token_id_seq;
+comment on sequence refresh_token_id_seq is '리프레시 토큰 식별키 시퀀스';
+
 -- app_push_token ID sequence
 create sequence app_push_token_id_seq;
+comment on sequence app_push_token_id_seq is '앱 푸시 토큰 식별키 시퀀스';
+
 -- app_push_msg ID sequence
 create sequence app_push_msg_seq;
+comment on sequence app_push_msg_seq is '앱 푸시 메시지 식별키 시퀀스';
+
+-- server_status_change_history ID sequence
+create sequence server_status_change_history_sequence;
+comment on sequence server_status_change_history_sequence is '서버 상태 변경 이력 식별키 시퀀스';
 
 -- 사용자 정보
 create table user_info
@@ -16,6 +27,12 @@ create table user_info
     created_at  timestamp    not null default current_timestamp,
     modified_at timestamp    not null default current_timestamp
 );
+comment on table user_info is '사용자 정보 관리';
+comment on column user_info.username is '사용자 식별자(아이디)';
+comment on column user_info.password is '사용자 비밀번호';
+comment on column user_info.name is '사용자 이름';
+comment on column user_info.created_at is '생성일자';
+comment on column user_info.modified_at is '수정일자';
 
 -- 관리 서버 정보
 create table server_info
@@ -31,6 +48,17 @@ create table server_info
     modified_at      timestamp    not null default current_timestamp,
     foreign key (user_id) references user_info (username)
 );
+comment on table server_info is '관리 대상 서버 정보';
+comment on column server_info.id is '서버 식별키';
+comment on column server_info.server_name is '서버 이름';
+comment on column server_info.activate is '서버 활성화 상태';
+comment on column server_info.hosting_url is '서버 호스팅 URL';
+comment on column server_info.health_check_url is '헬스체크 URL';
+comment on column server_info.management_url is '관리 URL';
+comment on column server_info.user_id is 'user_info 외래키';
+comment on column server_info.created_at is '생성일자';
+comment on column server_info.modified_at is '수정일자';
+
 
 -- refresh-token 정보
 create table refresh_token
@@ -42,6 +70,12 @@ create table refresh_token
     modified_at timestamp    not null default current_timestamp,
     foreign key (user_id) references user_info (username)
 );
+comment on table refresh_token is '인증/인가 관련 refresh-token 정보';
+comment on column refresh_token.id is '식별키';
+comment on column refresh_token.token is 'JWT 리프레시 토큰';
+comment on column refresh_token.user_id is 'user_info 외래키';
+comment on column refresh_token.created_at is '생성일자';
+comment on column refresh_token.modified_at is '수정일자';
 
 -- app-push-token 정보
 create table app_push_token
@@ -54,6 +88,13 @@ create table app_push_token
     modified_at timestamp    not null default current_timestamp,
     foreign key (user_id) references user_info (username)
 );
+comment on table app_push_token is '앱푸시알림 토큰 관리';
+comment on column app_push_token.id is '식별키';
+comment on column app_push_token.token is 'FCM 토큰';
+comment on column app_push_token.device is '클라이언트 식별키';
+comment on column app_push_token.user_id is 'user_info 외래키';
+comment on column app_push_token.created_at is '생성일자';
+comment on column app_push_token.modified_at is '수정일자';
 
 -- app-push-msg 정보
 create table app_push_msg
@@ -68,6 +109,47 @@ create table app_push_msg
     token_id      bigint       not null,
     foreign key (token_id) references app_push_token (id)
 );
+comment on table app_push_msg is '푸시 알림 관리';
+comment on column app_push_msg.id is '식별키';
+comment on column app_push_msg.title is '알림 제목';
+comment on column app_push_msg.body is '알림 본문 내용';
+comment on column app_push_msg.push_sent is '알림 송신 여부';
+comment on column app_push_msg.push_received is '알림 수신 여부';
+comment on column app_push_msg.created_at is '생성일자';
+comment on column app_push_msg.modified_at is '수정일자';
+comment on column app_push_msg.token_id is 'app_push_token 외래키';
+
+-- server 상태 변경 이력 정보
+create table server_status_change_history
+(
+    id                bigint primary key default nextval('server_status_change_history_sequence'),
+    checked_at        timestamp not null default current_timestamp,
+    is_up             bool      not null,
+    status_code       int,
+    response_time_ms  int,
+    error_category    varchar(50),
+    exception_class   varchar(200),
+    exception_message varchar(2000),
+    stacktrace_text   text,
+    response_body     text,
+    response_headers  text,
+    server_id         bigint    not null,
+    foreign key (server_id) references server_info (id)
+);
+
+comment on table server_status_change_history is '서버 활성 상태 변경 이력 관리';
+comment on column server_status_change_history.id is '식별키';
+comment on column server_status_change_history.checked_at is '서버 상태 식별 시점';
+comment on column server_status_change_history.is_up is '활성화 여부';
+comment on column server_status_change_history.status_code is '응답 상태 코드';
+comment on column server_status_change_history.response_time_ms is '응답 시간';
+comment on column server_status_change_history.error_category is '에러 카테고리';
+comment on column server_status_change_history.exception_class is '예외 클래스';
+comment on column server_status_change_history.exception_message is '예외 메시지';
+comment on column server_status_change_history.stacktrace_text is '스택트레이스';
+comment on column server_status_change_history.response_body is '응답 바디';
+comment on column server_status_change_history.response_headers is '응답 헤더';
+comment on column server_status_change_history.server_id is 'server_info 외래키';
 
 -- spring batch
 

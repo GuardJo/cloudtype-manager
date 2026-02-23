@@ -10,6 +10,7 @@ import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerDetail;
+import org.github.guardjo.cloudtype.manager.model.vo.ServerStatusChangeHistorySummary;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.service.ServerManagementService;
@@ -29,6 +30,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -228,6 +231,53 @@ class ServerManagementControllerTest {
                 .andExpect(status().isForbidden());
 
         then(serverManagementService).should().deleteMyServer(eq(serverId), eq(TEST_USER_DETAILS.getUserInfo()));
+    }
+
+    @DisplayName("GET : /api/v1/servers/status/histories")
+    @Test
+    void test_getStatusChangeHistories() throws Exception {
+        int page = 0;
+        int defaultPageSize = 10;
+        String userId = TEST_USER_DETAILS.getUsername();
+
+        List<ServerStatusChangeHistorySummary> expected = Stream.of(
+                        TestDataGenerator.serverStatusChangeHistoryEntity(TestDataGenerator.serverInfoEntity("TesetServer1", TEST_USER)),
+                        TestDataGenerator.serverStatusChangeHistoryEntity(TestDataGenerator.serverInfoEntity("TestServer2", TEST_USER))
+                )
+                .map(ServerStatusChangeHistorySummary::of)
+                .toList();
+
+        given(serverManagementService.findAllServerStatusChangeHistories(eq(userId), eq(page), eq(defaultPageSize))).willReturn(expected);
+
+        String response = mockMvc.perform(get("/api/v1/servers/status/histories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("page", String.valueOf(page))
+                        .with(user(TEST_USER_DETAILS)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+
+        JavaType listType = objectMapper.getTypeFactory().constructCollectionType(List.class, ServerStatusChangeHistorySummary.class);
+        JavaType responseType = objectMapper.getTypeFactory().constructParametricType(BaseResponse.class, listType);
+
+        BaseResponse<List<ServerStatusChangeHistorySummary>> actual = objectMapper.readValue(response, responseType);
+
+        assertThat(actual).isNotNull();
+        assertThat(actual.getData()).isNotNull();
+        assertThat(actual.getData().isEmpty()).isFalse();
+        assertThat(actual.getData())
+                .usingRecursiveComparison()
+                .withComparatorForType((left, right) -> {
+                    if (left == null && right == null) return 0;
+                    if (left == null) return -1;
+                    if (right == null) return 1;
+                    return left.truncatedTo(ChronoUnit.SECONDS).compareTo(right.truncatedTo(ChronoUnit.SECONDS));
+                }, LocalDateTime.class)
+                .isEqualTo(expected);
+
+        then(serverManagementService).should().findAllServerStatusChangeHistories(eq(userId), eq(page), eq(defaultPageSize));
     }
 
     private static Stream<Arguments> getAddNewServerTestData() {
