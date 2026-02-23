@@ -49,4 +49,18 @@ class RefreshTokenEntityRepositoryTest {
 
         assertThat(actual).isEqualTo(expected);
     }
+
+    @DisplayName("특정 일자 기준으로 마지막 수정일자가 해당 일자 이전인 refresh_token Entity 삭제")
+    @Test
+    void test_deleteAllByModifiedAtBefore() {
+        RefreshTokenEntity newRefreshToken = TestDataGenerator.refreshTokenEntity("refresh-token1", TEST_USER);
+
+        refreshTokenEntityRepository.save(newRefreshToken);
+
+        long initRows = refreshTokenEntityRepository.count();
+        int clearRows = refreshTokenEntityRepository.deleteAllByModifiedAtBefore(newRefreshToken.getModifiedAt());
+
+        assertThat(initRows).isEqualTo(2L);
+        assertThat(clearRows).isEqualTo(1);
+    }
 }

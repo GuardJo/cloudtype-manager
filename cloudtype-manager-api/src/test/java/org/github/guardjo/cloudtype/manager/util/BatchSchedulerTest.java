@@ -2,6 +2,7 @@ package org.github.guardjo.cloudtype.manager.util;
 
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.repository.RefreshTokenEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.service.HealthCheckService;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -29,7 +31,7 @@ import static org.mockito.Mockito.times;
 
 @SpringBatchTest
 @SpringBootTest
-@Sql(scripts = "classpath:org/springframework/batch/core/schema-h2.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(scripts = "classpath:org/springframework/batch/core/schema-h2.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class BatchSchedulerTest {
     private final static UserInfoEntity TEST_USER = TestDataGenerator.userInfoEntity("Tester");
     private final static List<ServerInfoEntity> SERVER_INFOS = new ArrayList<>();
@@ -41,6 +43,9 @@ class BatchSchedulerTest {
     private Job updateAllServerStatusJob;
 
     @Autowired
+    private Job cleanupRefreshTokenJob;
+
+    @Autowired
     private UserInfoEntityRepository userInfoEntityRepository;
 
     @Autowired
@@ -49,10 +54,11 @@ class BatchSchedulerTest {
     @MockitoBean
     private HealthCheckService healthCheckService;
 
+    @MockitoBean
+    private RefreshTokenEntityRepository refreshTokenEntityRepository;
+
     @BeforeEach
     void setUp() {
-        jobLauncherTestUtils.setJob(updateAllServerStatusJob);
-
         userInfoEntityRepository.save(TEST_USER);
 
         for (int i = 0; i < 10; i++) {
@@ -72,6 +78,7 @@ class BatchSchedulerTest {
     @DisplayName("updateAllServerStatusJob 배치 수행")
     @Test
     void test_runUpdateAllServerStatusJob() throws Exception {
+        jobLauncherTestUtils.setJob(updateAllServerStatusJob);
         JobParameters jobParameters = new JobParametersBuilder()
                 .addLong("time", System.currentTimeMillis())
                 .toJobParameters();
@@ -83,5 +90,21 @@ class BatchSchedulerTest {
         assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
 
         then(healthCheckService).should(times(SERVER_INFOS.size())).isServerActive(any(ServerInfoEntity.class));
+    }
+
+    @DisplayName("cleanupRefreshTokenJob 배치 수행")
+    @Test
+    void test_cleanupRefreshTokenJob() throws Exception {
+        jobLauncherTestUtils.setJob(cleanupRefreshTokenJob);
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
+                .toJobParameters();
+
+        given(refreshTokenEntityRepository.deleteAllByModifiedAtBefore(any(LocalDateTime.class))).willReturn(10);
+
+        JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
+        assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
+
+        then(refreshTokenEntityRepository).should().deleteAllByModifiedAtBefore(any(LocalDateTime.class));
     }
 }
