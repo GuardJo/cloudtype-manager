@@ -7,6 +7,7 @@ import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
 import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerDetail;
+import org.github.guardjo.cloudtype.manager.model.vo.ServerStatusChangeHistorySummary;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 
 import java.util.List;
@@ -24,4 +25,7 @@ public interface ServerManagementApiDoc {
 
     @Operation(summary = "관리 서버 삭제", description = "해당 계정이 관리중인 서버를 삭제한다.")
     BaseResponse<String> deleteMyServer(@Parameter(hidden = true) UserInfoPrincipal principal, Long serverId);
+
+    @Operation(summary = "관리 서버별 상태 이력 목록 조회", description = "관리 중인 서버의 상태 변경 이력 목록을 반환한다.")
+    BaseResponse<List<ServerStatusChangeHistorySummary>> getStatusChangeHistories(@Parameter(hidden = true) UserInfoPrincipal principal, int page, int size);
 }

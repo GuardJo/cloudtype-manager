@@ -7,6 +7,7 @@ import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
 import org.github.guardjo.cloudtype.manager.model.request.CreateServerRequest;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerDetail;
+import org.github.guardjo.cloudtype.manager.model.vo.ServerStatusChangeHistorySummary;
 import org.github.guardjo.cloudtype.manager.model.vo.ServerSummary;
 import org.github.guardjo.cloudtype.manager.service.ServerManagementService;
 import org.springframework.http.HttpStatus;
@@ -60,5 +61,15 @@ public class ServerManagementController implements ServerManagementApiDoc {
         serverManagementService.deleteMyServer(serverId, principal.getUserInfo());
 
         return BaseResponse.defaultSuccess();
+    }
+
+    @GetMapping("/status/histories")
+    @Override
+    public BaseResponse<List<ServerStatusChangeHistorySummary>> getStatusChangeHistories(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestParam(name = "page") int page, @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        log.info("GET : /api/v1/servers/status/histories, username = {}, page = {}, size = {}", principal.getUsername(), page, size);
+
+        List<ServerStatusChangeHistorySummary> serverStatusChangeHistorySummaries = serverManagementService.findAllServerStatusChangeHistories(principal.getUsername(), page, size);
+
+        return BaseResponse.of(HttpStatus.OK, serverStatusChangeHistorySummaries);
     }
 }

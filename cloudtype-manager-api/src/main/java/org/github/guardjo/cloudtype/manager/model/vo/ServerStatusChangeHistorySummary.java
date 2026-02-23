@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.model.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerStatusChangeHistoryEntity;
@@ -18,6 +19,7 @@ public record ServerStatusChangeHistorySummary(
         String healthCheckUrl,
 
         @Schema(description = "상태 변경 시각", example = "2026-02-21 19:00:00")
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         LocalDateTime checkedAt,
 
         @Schema(description = "최근 변겅 상태", example = "true")
