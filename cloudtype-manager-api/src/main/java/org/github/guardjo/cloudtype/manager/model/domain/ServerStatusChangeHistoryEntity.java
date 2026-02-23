@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Getter
-@EqualsAndHashCode(of = {"id", "checkedAt", "server", "statusCode"}, callSuper = false)
+@EqualsAndHashCode(of = {"id", "checkedAt", "statusCode"}, callSuper = false)
 public class ServerStatusChangeHistoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

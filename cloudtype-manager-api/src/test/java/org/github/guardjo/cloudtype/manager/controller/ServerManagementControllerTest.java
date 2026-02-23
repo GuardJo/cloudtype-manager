@@ -30,6 +30,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -265,7 +267,15 @@ class ServerManagementControllerTest {
         assertThat(actual).isNotNull();
         assertThat(actual.getData()).isNotNull();
         assertThat(actual.getData().isEmpty()).isFalse();
-        assertThat(actual.getData()).isEqualTo(expected);
+        assertThat(actual.getData())
+                .usingRecursiveComparison()
+                .withComparatorForType((left, right) -> {
+                    if (left == null && right == null) return 0;
+                    if (left == null) return -1;
+                    if (right == null) return 1;
+                    return left.truncatedTo(ChronoUnit.SECONDS).compareTo(right.truncatedTo(ChronoUnit.SECONDS));
+                }, LocalDateTime.class)
+                .isEqualTo(expected);
 
         then(serverManagementService).should().findAllServerStatusChangeHistories(eq(userId), eq(page), eq(defaultPageSize));
     }

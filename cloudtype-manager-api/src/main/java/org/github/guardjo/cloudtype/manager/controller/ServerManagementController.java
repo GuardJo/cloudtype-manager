@@ -65,7 +65,7 @@ public class ServerManagementController implements ServerManagementApiDoc {
 
     @GetMapping("/status/histories")
     @Override
-    public BaseResponse<List<ServerStatusChangeHistorySummary>> getStatusChangeHistories(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestParam(name = "page") int page, @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+    public BaseResponse<List<ServerStatusChangeHistorySummary>> getStatusChangeHistories(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestParam(name = "page", required = false, defaultValue = "0") int page, @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
         log.info("GET : /api/v1/servers/status/histories, username = {}, page = {}, size = {}", principal.getUsername(), page, size);
 
         List<ServerStatusChangeHistorySummary> serverStatusChangeHistorySummaries = serverManagementService.findAllServerStatusChangeHistories(principal.getUsername(), page, size);

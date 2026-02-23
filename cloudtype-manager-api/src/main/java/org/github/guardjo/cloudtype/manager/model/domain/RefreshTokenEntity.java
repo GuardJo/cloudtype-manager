@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Getter
-@EqualsAndHashCode(of = {"token", "userInfo"}, callSuper = false)
+@EqualsAndHashCode(of = {"id", "token"}, callSuper = false)
 public class RefreshTokenEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
