@@ -14,9 +14,10 @@ import org.springframework.batch.core.*;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,7 +32,8 @@ import static org.mockito.Mockito.times;
 
 @SpringBatchTest
 @SpringBootTest
-@Sql(scripts = "classpath:org/springframework/batch/core/schema-h2.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class BatchSchedulerTest {
     private final static UserInfoEntity TEST_USER = TestDataGenerator.userInfoEntity("Tester");
     private final static List<ServerInfoEntity> SERVER_INFOS = new ArrayList<>();

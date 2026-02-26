@@ -10,14 +10,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @DataJpaTest
+@Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class ServerInfoEntityRepositoryTest {
     private final static UserInfoEntity TEST_USER = TestDataGenerator.userInfoEntity("Tester");
 
@@ -113,6 +119,8 @@ class ServerInfoEntityRepositoryTest {
                 .boxed()
                 .toList();
 
+        Map<Long, ServerInfoEntity> expectedServerInfos = serverInfos.stream()
+                .collect(Collectors.toMap(ServerInfoEntity::getId, serverInfo -> serverInfo));
         List<InactiveServerNotification> actual = serverInfoRepository.findAllInactiveServerNotifications(inactiveServerIds);
 
         assertThat(actual).isNotNull();
@@ -120,9 +128,9 @@ class ServerInfoEntityRepositoryTest {
         assertThat(actual.size()).isEqualTo(serverInfos.size());
 
         for (int i = 0; i < actual.size(); i++) {
-            ServerInfoEntity serverInfo = serverInfos.get(i);
             InactiveServerNotification notification = actual.get(i);
-
+            ServerInfoEntity serverInfo = expectedServerInfos.get(notification.serverId());
+            
             assertThat(notification.serverId()).isEqualTo(serverInfo.getId());
             assertThat(notification.serverName()).isEqualTo(serverInfo.getServerName());
             assertThat(notification.userId()).isEqualTo(TEST_USER.getUsername());
