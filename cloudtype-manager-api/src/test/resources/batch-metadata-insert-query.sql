@@ -58,3 +58,7 @@ VALUES (2,
         'rO0ABXNyABFqYXZhLnV0aWwuSGFzaE1hcAUH2sHDFmDRAwACRgAKbG9hZEZhY3RvckkACXRocmVzaG9sZHhwP0AAAAAAAAx3CAAAABAAAAAEdAARYmF0Y2gudGFza2xldFR5cGV0AD1vcmcuc3ByaW5nZnJhbWV3b3JrLmJhdGNoLmNvcmUuc3RlcC5pdGVtLkNodW5rT3JpZW50ZWRUYXNrbGV0dAAfc2VydmVySW5mb0l0ZW1SZWFkZXIucmVhZC5jb3VudHNyABFqYXZhLmxhbmcuSW50ZWdlchLioKT3gYc4AgABSQAFdmFsdWV4cgAQamF2YS5sYW5nLk51bWJlcoaslR0LlOCLAgAAeHAAAAABdAANYmF0Y2gudmVyc2lvbnQABTUuMi4ydAAOYmF0Y2guc3RlcFR5cGV0ADdvcmcuc3ByaW5nZnJhbWV3b3JrLmJhdGNoLmNvcmUuc3RlcC50YXNrbGV0LlRhc2tsZXRTdGVweA==',
         null);
 
+-- sequence 재설정
+SELECT setval('batch_job_seq', (SELECT MAX(job_instance_id) FROM batch_job_instance), true);
+SELECT setval('batch_job_execution_seq', (SELECT MAX(job_execution_id) FROM batch_job_execution), true);
+SELECT setval('batch_step_execution_seq', (SELECT MAX(step_execution_id) FROM batch_step_execution), true);

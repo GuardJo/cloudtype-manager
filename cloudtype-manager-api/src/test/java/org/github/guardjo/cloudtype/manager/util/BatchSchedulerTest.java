@@ -16,9 +16,13 @@ import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +57,9 @@ class BatchSchedulerTest {
     @Autowired
     private ServerInfoEntityRepository serverInfoEntityRepository;
 
+    @Autowired
+    private DataSource dataSource;
+
     @MockitoBean
     private HealthCheckService healthCheckService;
 
@@ -61,6 +68,7 @@ class BatchSchedulerTest {
 
     @BeforeEach
     void setUp() {
+        initializeBatchSchemaIfMissing();
         userInfoEntityRepository.save(TEST_USER);
 
         for (int i = 0; i < 10; i++) {
@@ -75,6 +83,17 @@ class BatchSchedulerTest {
         serverInfoEntityRepository.deleteAll();
         userInfoEntityRepository.deleteAll();
         SERVER_INFOS.clear();
+    }
+
+    private void initializeBatchSchemaIfMissing() {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        String relationName = jdbcTemplate.queryForObject("select to_regclass('batch_job_instance')", String.class);
+
+        if (relationName == null) {
+            ResourceDatabasePopulator populator = new ResourceDatabasePopulator(
+                    new ClassPathResource("org/springframework/batch/core/schema-postgresql.sql"));
+            populator.execute(dataSource);
+        }
     }
 
     @DisplayName("updateAllServerStatusJob 배치 수행")
