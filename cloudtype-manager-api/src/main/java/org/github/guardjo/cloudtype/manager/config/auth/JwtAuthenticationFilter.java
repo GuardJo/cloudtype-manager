@@ -38,10 +38,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 } catch (AuthenticationException e) {
                     log.warn("Failed to authenticate user, cause = {}", e.getMessage(), e);
                     BaseResponse.writeUnauthorizedResponse(response, e, objectMapper);
+                    return;
                 }
             } else {
                 log.error("Invalid JWT token, token = {}", token);
                 BaseResponse.writeUnauthorizedResponse(response, new BadCredentialsException("Invalid JWT token"), objectMapper);
+                return;
             }
         }
 

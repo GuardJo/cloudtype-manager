@@ -13,6 +13,7 @@ import org.github.guardjo.cloudtype.manager.model.vo.AuthTokenInfo;
 import org.github.guardjo.cloudtype.manager.repository.RefreshTokenEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -122,7 +123,7 @@ public class JwtTokenProvider {
 
         if (StringUtils.isEmpty(claims.getAudience()) || !claims.getAudience().equals(jwtProperties.getAccessAudience())) {
             log.error("Invalid JWT audience, aud = {}, token = {}", claims.getAudience(), token);
-            throw new BadCredentialsException("Invalid JWT audience");
+            throw new InsufficientAuthenticationException("Invalid JWT audience");
         }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
