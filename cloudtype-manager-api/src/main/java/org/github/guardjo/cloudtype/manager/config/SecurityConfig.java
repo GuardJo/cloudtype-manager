@@ -3,6 +3,7 @@ package org.github.guardjo.cloudtype.manager.config;
 import lombok.RequiredArgsConstructor;
 import org.github.guardjo.cloudtype.manager.config.auth.GoogleOAuth2UserService;
 import org.github.guardjo.cloudtype.manager.config.auth.JwtAuthenticationFilter;
+import org.github.guardjo.cloudtype.manager.config.auth.OAuth2AuthenticationFailureHandler;
 import org.github.guardjo.cloudtype.manager.config.auth.OAuth2AuthenticationSuccessHandler;
 import org.github.guardjo.cloudtype.manager.config.properties.CorsProperties;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +27,7 @@ public class SecurityConfig {
     private final CorsProperties corsProperties;
     private final GoogleOAuth2UserService googleOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -45,6 +47,7 @@ public class SecurityConfig {
                 .oauth2Login(configurer -> {
                     configurer.userInfoEndpoint(customizer -> customizer.userService(googleOAuth2UserService));
                     configurer.successHandler(oAuth2AuthenticationSuccessHandler);
+                    configurer.failureHandler(oAuth2AuthenticationFailureHandler);
                 })
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -2,6 +2,7 @@ package org.github.guardjo.cloudtype.manager.config.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SecurityException;
 import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.Objects;
 
 @Component
 @Slf4j
@@ -96,9 +99,26 @@ public class JwtTokenProvider {
      *
      * @param token JWT 토큰
      * @return 인증 객체
+     * @throws AuthenticationException 복호화된 JWT 토큰 내 데이터 인가 절차 간 문제 발생
      */
-    public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
+    public Authentication getAuthentication(String token) throws AuthenticationException {
+        Claims claims = null;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
+        } catch (JwtException e) {
+            if (e instanceof SecurityException || e instanceof MalformedJwtException) {
+                log.error("Invalid JWT Token", e);
+            } else if (e instanceof ExpiredJwtException) {
+                log.error("Expired JWT Token", e);
+            } else if (e instanceof UnsupportedJwtException) {
+                log.error("Unsupported JWT Token", e);
+            }
+        }
+
+        if (Objects.isNull(claims)) {
+            log.error("JWT claims string is empty.");
+            throw new BadCredentialsException("JWT claims string is empty.");
+        }
 
         if (StringUtils.isEmpty(claims.getAudience()) || !claims.getAudience().equals(jwtProperties.getAccessAudience())) {
             log.error("Invalid JWT audience, aud = {}, token = {}", claims.getAudience(), token);
