@@ -33,6 +33,8 @@ jwt:
   secret: ${JWT_TOKEN_SECRET}
   access-token-expiration-millis: 1_800_000 # 30 minutes
   refresh-token-expiration-millis: 604_800_000 # 7 days
+  access-audience: "api-auth"
+  refresh-audience: "refresh-auth"
 
 cors:
   allow-credentials: true

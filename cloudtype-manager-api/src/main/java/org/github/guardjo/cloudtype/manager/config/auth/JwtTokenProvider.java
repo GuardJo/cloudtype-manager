@@ -2,6 +2,8 @@ package org.github.guardjo.cloudtype.manager.config.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SecurityException;
+import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.config.properties.JwtProperties;
@@ -10,8 +12,11 @@ import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.vo.AuthTokenInfo;
 import org.github.guardjo.cloudtype.manager.repository.RefreshTokenEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
@@ -19,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.Objects;
 
 @Component
 @Slf4j
@@ -43,12 +49,12 @@ public class JwtTokenProvider {
      * <i>이 때 refresh_token의 경우, DB에 적재</i>
      *
      * @param authentication 인증 객체
-     * @return JWT 토큰 (access-token & refresh-token)
+     * @return JWT 토큰 (access-token and refresh-token)
      */
     @Transactional
     protected AuthTokenInfo generateAuthTokenInfo(Authentication authentication) {
-        String accessToken = generateToken(authentication.getName(), jwtProperties.getAccessTokenExpirationMillis());
-        String refreshToken = generateToken(authentication.getName(), jwtProperties.getRefreshTokenExpirationMillis());
+        String accessToken = generateToken(authentication.getName(), jwtProperties.getAccessTokenExpirationMillis(), jwtProperties.getAccessAudience());
+        String refreshToken = generateToken(authentication.getName(), jwtProperties.getRefreshTokenExpirationMillis(), jwtProperties.getRefreshAudience());
         saveNewToken(refreshToken, authentication.getName());
 
         return new AuthTokenInfo(accessToken, refreshToken);
@@ -81,12 +87,47 @@ public class JwtTokenProvider {
             throw new MalformedJwtException("User and token don't match");
         }
 
-        String accessToken = generateToken(username, jwtProperties.getAccessTokenExpirationMillis());
-        String newRefreshToken = generateToken(username, jwtProperties.getRefreshTokenExpirationMillis());
+        String accessToken = generateToken(username, jwtProperties.getAccessTokenExpirationMillis(), jwtProperties.getAccessAudience());
+        String newRefreshToken = generateToken(username, jwtProperties.getRefreshTokenExpirationMillis(), jwtProperties.getRefreshAudience());
 
         refreshTokenEntity.setToken(newRefreshToken);
 
         return new AuthTokenInfo(accessToken, newRefreshToken);
+    }
+
+    /**
+     * 토큰 데이터를 기반으로 토큰에 해당하는 인증객체를 반환한다.
+     *
+     * @param token JWT 토큰
+     * @return 인증 객체
+     * @throws AuthenticationException 복호화된 JWT 토큰 내 데이터 인가 절차 간 문제 발생
+     */
+    public Authentication getAuthentication(String token) throws AuthenticationException {
+        Claims claims = null;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
+        } catch (JwtException e) {
+            if (e instanceof SecurityException || e instanceof MalformedJwtException) {
+                log.error("Invalid JWT Token", e);
+            } else if (e instanceof ExpiredJwtException) {
+                log.error("Expired JWT Token", e);
+            } else if (e instanceof UnsupportedJwtException) {
+                log.error("Unsupported JWT Token", e);
+            }
+        }
+
+        if (Objects.isNull(claims)) {
+            log.error("JWT claims string is empty.");
+            throw new BadCredentialsException("JWT claims string is empty.");
+        }
+
+        if (StringUtils.isEmpty(claims.getAudience()) || !claims.getAudience().equals(jwtProperties.getAccessAudience())) {
+            log.error("Invalid JWT audience, aud = {}, token = {}", claims.getAudience(), token);
+            throw new InsufficientAuthenticationException("Invalid JWT audience");
+        }
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
     /**
@@ -111,18 +152,6 @@ public class JwtTokenProvider {
         return false;
     }
 
-    /**
-     * 토큰 데이터를 기반으로 토큰에 해당하는 인증객체를 반환한다.
-     *
-     * @param token JWT 토큰
-     * @return 인증 객체
-     */
-    public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
-        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-    }
-
     private void saveNewToken(String token, String username) {
         log.debug("Creating refresh-token, username = {}", username);
 
@@ -142,7 +171,7 @@ public class JwtTokenProvider {
         log.info("Saved refresh-token, username = {}", username);
     }
 
-    private String generateToken(String username, long expirationMillis) {
+    private String generateToken(String username, long expirationMillis, String audienceType) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMillis);
 
@@ -150,6 +179,7 @@ public class JwtTokenProvider {
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
+                .setAudience(audienceType)
                 .signWith(secretKey, SignatureAlgorithm.HS512)
                 .compact();
     }

@@ -11,4 +11,6 @@ public class JwtProperties {
     private final String secret;
     private final long accessTokenExpirationMillis;
     private final long refreshTokenExpirationMillis;
+    private final String accessAudience;
+    private final String refreshAudience;
 }
