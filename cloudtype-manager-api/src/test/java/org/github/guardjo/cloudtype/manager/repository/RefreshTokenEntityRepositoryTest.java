@@ -63,4 +63,19 @@ class RefreshTokenEntityRepositoryTest {
         assertThat(initRows).isEqualTo(2L);
         assertThat(clearRows).isEqualTo(1);
     }
+
+    @DisplayName("특정 토큰에 해당하는 refresh_token Entity 삭제")
+    @Test
+    void test_deleteAllByToken() {
+        RefreshTokenEntity newRefreshToken = TestDataGenerator.refreshTokenEntity("refresh-token1", TEST_USER);
+
+        refreshTokenEntityRepository.save(newRefreshToken);
+
+        long totalCount = refreshTokenEntityRepository.count();
+        int deletedRow = refreshTokenEntityRepository.deleteAllByToken(newRefreshToken.getToken());
+
+        assertThat(totalCount).isNotZero();
+        assertThat(deletedRow).isEqualTo(1);
+        assertThat(refreshTokenEntityRepository.count()).isEqualTo(totalCount - deletedRow);
+    }
 }
