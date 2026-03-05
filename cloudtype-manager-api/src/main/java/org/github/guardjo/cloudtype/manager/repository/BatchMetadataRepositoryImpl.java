@@ -30,4 +30,117 @@ public class BatchMetadataRepositoryImpl implements BatchMetadataRepository {
                 .setParameter("limit", limit)
                 .getResultList();
     }
+
+    @Override
+    public long deleteAllJobExecutionContextInJobExecutionIds(List<Long> jobExecutionIds) {
+        if (jobExecutionIds == null || jobExecutionIds.isEmpty()) {
+            return 0;
+        }
+
+        return entityManager.createNativeQuery(
+                        "delete from batch_job_execution_context " +
+                                "where job_execution_id in (:jobExecutionIds)"
+                )
+                .setParameter("jobExecutionIds", jobExecutionIds)
+                .executeUpdate();
+    }
+
+    @Override
+    public long deleteAllJobExectionParamsInJobExecutionIds(List<Long> jobExecutionIds) {
+        if (jobExecutionIds == null || jobExecutionIds.isEmpty()) {
+            return 0;
+        }
+
+        return entityManager.createNativeQuery(
+                        "delete from batch_job_execution_params " +
+                                "where job_execution_id in (:jobExecutionIds)"
+                )
+                .setParameter("jobExecutionIds", jobExecutionIds)
+                .executeUpdate();
+    }
+
+    @Override
+    public long deleteAllStepExecutionInJobExecutionIds(List<Long> jobExecutionIds) {
+        if (jobExecutionIds == null || jobExecutionIds.isEmpty()) {
+            return 0;
+        }
+
+        return entityManager.createNativeQuery(
+                        "delete from batch_step_execution " +
+                                "where job_execution_id in (:jobExecutionIds)"
+                )
+                .setParameter("jobExecutionIds", jobExecutionIds)
+                .executeUpdate();
+    }
+
+    @Override
+    public long deleteAllStepExecutionContextInJobExecutionIds(List<Long> jobExecutionIds) {
+        if (jobExecutionIds == null || jobExecutionIds.isEmpty()) {
+            return 0;
+        }
+
+        return entityManager.createNativeQuery(
+                        "delete from batch_step_execution_context " +
+                                "where step_execution_id in (" +
+                                "    select step_execution_id " +
+                                "    from batch_step_execution " +
+                                "    where job_execution_id in (:jobExecutionIds)" +
+                                ")"
+                )
+                .setParameter("jobExecutionIds", jobExecutionIds)
+                .executeUpdate();
+    }
+
+    @Override
+    public long deleteAllJobExecutionInJobExecutionIds(List<Long> jobExecutionIds) {
+        if (jobExecutionIds == null || jobExecutionIds.isEmpty()) {
+            return 0;
+        }
+
+        return entityManager.createNativeQuery(
+                        "delete from batch_job_execution " +
+                                "where job_execution_id in (:jobExecutionIds)"
+                )
+                .setParameter("jobExecutionIds", jobExecutionIds)
+                .executeUpdate();
+    }
+
+    @Override
+    public long deleteAllJobInstanceInJobExecutionIds(List<Long> jobExecutionIds) {
+        if (jobExecutionIds == null || jobExecutionIds.isEmpty()) {
+            return 0;
+        }
+
+        List<Long> jobInstanceIds = entityManager.createNativeQuery(
+                        "select distinct je.job_instance_id " +
+                                "from batch_job_execution je " +
+                                "where je.job_execution_id in (:jobExecutionIds)"
+                        , Long.class
+                )
+                .setParameter("jobExecutionIds", jobExecutionIds)
+                .getResultList();
+
+        if (jobInstanceIds.isEmpty()) {
+            return 0;
+        }
+
+        entityManager.createNativeQuery(
+                        "delete from batch_job_execution " +
+                                "where job_execution_id in (:jobExecutionIds)"
+                )
+                .setParameter("jobExecutionIds", jobExecutionIds)
+                .executeUpdate();
+
+        return entityManager.createNativeQuery(
+                        "delete from batch_job_instance ji " +
+                                "where ji.job_instance_id in (:jobInstanceIds) " +
+                                "  and not exists (" +
+                                "      select 1 " +
+                                "      from batch_job_execution je " +
+                                "      where je.job_instance_id = ji.job_instance_id" +
+                                "  )"
+                )
+                .setParameter("jobInstanceIds", jobInstanceIds)
+                .executeUpdate();
+    }
 }

@@ -1,5 +1,6 @@
 package org.github.guardjo.cloudtype.manager.repository;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ class BatchMetadataRepositoryTest {
     @Autowired
     private BatchMetadataRepository batchMetadataRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
     @DisplayName("특정 일자 기준 이전에 해당하는 batch_job_execution 중 상태가 COMPLETED인 식별키 목록 조회")
     @Test
     void test_selectAllJobExecutionIdsByStatusIsCompletedAndEndTimeBefore() {
@@ -37,5 +41,100 @@ class BatchMetadataRepositoryTest {
         assertThat(actual).isNotNull();
         assertThat(actual.isEmpty()).isFalse();
         assertThat(actual.size()).isEqualTo(1);
+    }
+
+    @DisplayName("jobExecutionId 목록에 해당하는 batch_job_execution_context 삭제")
+    @Test
+    void test_deleteAllJobExecutionContextInJobExecutionIds() {
+        List<Long> targetIds = List.of(1L);
+
+        long actual = batchMetadataRepository.deleteAllJobExecutionContextInJobExecutionIds(targetIds);
+
+        assertThat(actual).isEqualTo(1L);
+        assertThat(count("select count(*) from batch_job_execution_context where job_execution_id = 1")).isEqualTo(0L);
+        assertThat(count("select count(*) from batch_job_execution_context where job_execution_id = 2")).isEqualTo(1L);
+    }
+
+    @DisplayName("jobExecutionId 목록에 해당하는 batch_job_execution_params 삭제")
+    @Test
+    void test_deleteAllJobExectionParamsInJobExecutionIds() {
+        List<Long> targetIds = List.of(1L);
+
+        long actual = batchMetadataRepository.deleteAllJobExectionParamsInJobExecutionIds(targetIds);
+
+        assertThat(actual).isEqualTo(1L);
+        assertThat(count("select count(*) from batch_job_execution_params where job_execution_id = 1")).isEqualTo(0L);
+        assertThat(count("select count(*) from batch_job_execution_params where job_execution_id = 2")).isEqualTo(1L);
+    }
+
+    @DisplayName("jobExecutionId 목록에 해당하는 batch_step_execution 삭제")
+    @Test
+    void test_deleteAllStepExecutionInJobExecutionIds() {
+        List<Long> targetIds = List.of(1L);
+
+        batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(targetIds);
+        long actual = batchMetadataRepository.deleteAllStepExecutionInJobExecutionIds(targetIds);
+
+        assertThat(actual).isEqualTo(1L);
+        assertThat(count("select count(*) from batch_step_execution where job_execution_id = 1")).isEqualTo(0L);
+        assertThat(count("select count(*) from batch_step_execution where job_execution_id = 2")).isEqualTo(1L);
+    }
+
+    @DisplayName("jobExecutionId 목록에 해당하는 batch_step_execution_context 삭제")
+    @Test
+    void test_deleteAllStepExecutionContextInJobExecutionIds() {
+        List<Long> targetIds = List.of(1L);
+
+        long actual = batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(targetIds);
+
+        assertThat(actual).isEqualTo(1L);
+        assertThat(count(
+                "select count(*) from batch_step_execution_context sec " +
+                        "join batch_step_execution se on sec.step_execution_id = se.step_execution_id " +
+                        "where se.job_execution_id = 1"
+        )).isEqualTo(0L);
+        assertThat(count(
+                "select count(*) from batch_step_execution_context sec " +
+                        "join batch_step_execution se on sec.step_execution_id = se.step_execution_id " +
+                        "where se.job_execution_id = 2"
+        )).isEqualTo(1L);
+    }
+
+    @DisplayName("jobExecutionId 목록에 해당하는 batch_job_execution 삭제")
+    @Test
+    void test_deleteAllJobExecutionInJobExecutionIds() {
+        List<Long> targetIds = List.of(1L);
+
+        batchMetadataRepository.deleteAllJobExecutionContextInJobExecutionIds(targetIds);
+        batchMetadataRepository.deleteAllJobExectionParamsInJobExecutionIds(targetIds);
+        batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(targetIds);
+        batchMetadataRepository.deleteAllStepExecutionInJobExecutionIds(targetIds);
+        long actual = batchMetadataRepository.deleteAllJobExecutionInJobExecutionIds(targetIds);
+
+        assertThat(actual).isEqualTo(1L);
+        assertThat(count("select count(*) from batch_job_execution where job_execution_id = 1")).isEqualTo(0L);
+        assertThat(count("select count(*) from batch_job_execution where job_execution_id = 2")).isEqualTo(1L);
+    }
+
+    @DisplayName("jobExecutionId 목록에 해당하는 batch_job_instance 삭제")
+    @Test
+    void test_deleteAllJobInstanceInJobExecutionIds() {
+        List<Long> targetIds = List.of(1L);
+
+        batchMetadataRepository.deleteAllJobExecutionContextInJobExecutionIds(targetIds);
+        batchMetadataRepository.deleteAllJobExectionParamsInJobExecutionIds(targetIds);
+        batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(targetIds);
+        batchMetadataRepository.deleteAllStepExecutionInJobExecutionIds(targetIds);
+        long actual = batchMetadataRepository.deleteAllJobInstanceInJobExecutionIds(targetIds);
+
+        assertThat(actual).isEqualTo(1L);
+        assertThat(count("select count(*) from batch_job_execution where job_execution_id = 1")).isEqualTo(0L);
+        assertThat(count("select count(*) from batch_job_instance where job_instance_id = 1")).isEqualTo(0L);
+        assertThat(count("select count(*) from batch_job_instance where job_instance_id = 2")).isEqualTo(1L);
+    }
+
+    private long count(String query) {
+        return ((Number) entityManager.createNativeQuery(query)
+                .getSingleResult()).longValue();
     }
 }

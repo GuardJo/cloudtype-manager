@@ -7,11 +7,11 @@ VALUES (2, 0, 'updateAllServerStatusJob', 'd36c3e251f75649bebcce0605c47ed86');
 -- job_execution --
 INSERT INTO public.batch_job_execution (job_execution_id, version, job_instance_id, create_time, start_time, end_time,
                                         status, exit_code, exit_message, last_updated)
-VALUES (1, 2, 1, '2025-02-27 16:33:32.392925', '2025-02-27 16:33:32.431382', '2025-02-27 16:33:32.512795', 'COMPLETED',
+VALUES (1, 2, 1, '2025-02-27 16:33:32.392925', '2025-02-27 16:33:32.431382', '2025-02-27 16:33:32.512795', 'FAILED',
         'COMPLETED', '', '2025-02-27 16:33:32.512858');
 INSERT INTO public.batch_job_execution (job_execution_id, version, job_instance_id, create_time, start_time, end_time,
                                         status, exit_code, exit_message, last_updated)
-VALUES (2, 2, 2, '2025-02-27 16:34:56.708281', '2025-02-27 16:34:56.723178', '2025-02-27 16:34:56.798261', 'FAILED',
+VALUES (2, 2, 2, '2025-02-27 16:34:56.708281', '2025-02-27 16:34:56.723178', '2025-02-27 16:34:56.798261', 'COMPLETED',
         'COMPLETED', '', '2025-02-27 16:34:56.798322');
 
 -- job_execution_context
