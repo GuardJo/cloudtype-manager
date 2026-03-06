@@ -151,17 +151,21 @@ class BatchSchedulerTest {
         given(batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(targetExecutionIds)).willReturn(2L);
         given(batchMetadataRepository.deleteAllStepExecutionInJobExecutionIds(targetExecutionIds)).willReturn(2L);
         given(batchMetadataRepository.deleteAllJobExecutionContextInJobExecutionIds(targetExecutionIds)).willReturn(2L);
-        given(batchMetadataRepository.deleteAllJobExectionParamsInJobExecutionIds(targetExecutionIds)).willReturn(2L);
-        given(batchMetadataRepository.deleteAllJobInstanceInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.deleteAllJobExecutionParamsInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.selectAllJobInstanceIdsInJobExecutionIds(targetExecutionIds)).willReturn(targetExecutionIds);
+        given(batchMetadataRepository.deleteAllJobExecutionInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.deleteAllJobInstanceInJobInstanceIds(targetExecutionIds)).willReturn(2L);
 
         JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
         assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
 
         then(batchMetadataRepository).should().selectAllJobExecutionIdsByStatusIsCompletedAndEndTimeBefore(any(LocalDateTime.class), any(Integer.class));
+        then(batchMetadataRepository).should().selectAllJobInstanceIdsInJobExecutionIds(targetExecutionIds);
         then(batchMetadataRepository).should().deleteAllStepExecutionContextInJobExecutionIds(targetExecutionIds);
         then(batchMetadataRepository).should().deleteAllStepExecutionInJobExecutionIds(targetExecutionIds);
         then(batchMetadataRepository).should().deleteAllJobExecutionContextInJobExecutionIds(targetExecutionIds);
-        then(batchMetadataRepository).should().deleteAllJobExectionParamsInJobExecutionIds(targetExecutionIds);
-        then(batchMetadataRepository).should().deleteAllJobInstanceInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllJobExecutionParamsInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllJobExecutionInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllJobInstanceInJobInstanceIds(targetExecutionIds);
     }
 }

@@ -181,6 +181,8 @@ public class BatchConfig {
                 return RepeatStatus.FINISHED;
             }
 
+            List<Long> jobInstanceIds =
+                    batchMetadataRepository.selectAllJobInstanceIdsInJobExecutionIds(jobExecutionIds);
             long stepExecutionContextDeletedRows =
                     batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(jobExecutionIds);
             long stepExecutionDeletedRows =
@@ -188,17 +190,21 @@ public class BatchConfig {
             long jobExecutionContextDeletedRows =
                     batchMetadataRepository.deleteAllJobExecutionContextInJobExecutionIds(jobExecutionIds);
             long jobExecutionParamDeletedRows =
-                    batchMetadataRepository.deleteAllJobExectionParamsInJobExecutionIds(jobExecutionIds);
+                    batchMetadataRepository.deleteAllJobExecutionParamsInJobExecutionIds(jobExecutionIds);
+            long jobExecutionDeletedRows =
+                    batchMetadataRepository.deleteAllJobExecutionInJobExecutionIds(jobExecutionIds);
             long jobInstanceDeletedRows =
-                    batchMetadataRepository.deleteAllJobInstanceInJobExecutionIds(jobExecutionIds);
+                    batchMetadataRepository.deleteAllJobInstanceInJobInstanceIds(jobInstanceIds);
 
             log.info(
-                    "Cleanup expired batch metadata, targetJobExecutionCount = {}, deletedRows(stepExecutionContext={}, stepExecution={}, jobExecutionContext={}, jobExecutionParam={}, jobInstance={})",
+                    "Cleanup expired batch metadata, targetJobExecutionCount = {}, targetJobInstanceCount = {}, deletedRows(stepExecutionContext={}, stepExecution={}, jobExecutionContext={}, jobExecutionParam={}, jobExecution={}, jobInstance={})",
                     jobExecutionIds.size(),
+                    jobInstanceIds.size(),
                     stepExecutionContextDeletedRows,
                     stepExecutionDeletedRows,
                     jobExecutionContextDeletedRows,
                     jobExecutionParamDeletedRows,
+                    jobExecutionDeletedRows,
                     jobInstanceDeletedRows
             );
 

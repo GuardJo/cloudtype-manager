@@ -57,10 +57,10 @@ class BatchMetadataRepositoryTest {
 
     @DisplayName("jobExecutionId 목록에 해당하는 batch_job_execution_params 삭제")
     @Test
-    void test_deleteAllJobExectionParamsInJobExecutionIds() {
+    void test_deleteAllJobExecutionParamsInJobExecutionIds() {
         List<Long> targetIds = List.of(1L);
 
-        long actual = batchMetadataRepository.deleteAllJobExectionParamsInJobExecutionIds(targetIds);
+        long actual = batchMetadataRepository.deleteAllJobExecutionParamsInJobExecutionIds(targetIds);
 
         assertThat(actual).isEqualTo(1L);
         assertThat(count("select count(*) from batch_job_execution_params where job_execution_id = 1")).isEqualTo(0L);
@@ -106,7 +106,7 @@ class BatchMetadataRepositoryTest {
         List<Long> targetIds = List.of(1L);
 
         batchMetadataRepository.deleteAllJobExecutionContextInJobExecutionIds(targetIds);
-        batchMetadataRepository.deleteAllJobExectionParamsInJobExecutionIds(targetIds);
+        batchMetadataRepository.deleteAllJobExecutionParamsInJobExecutionIds(targetIds);
         batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(targetIds);
         batchMetadataRepository.deleteAllStepExecutionInJobExecutionIds(targetIds);
         long actual = batchMetadataRepository.deleteAllJobExecutionInJobExecutionIds(targetIds);
@@ -122,10 +122,12 @@ class BatchMetadataRepositoryTest {
         List<Long> targetIds = List.of(1L);
 
         batchMetadataRepository.deleteAllJobExecutionContextInJobExecutionIds(targetIds);
-        batchMetadataRepository.deleteAllJobExectionParamsInJobExecutionIds(targetIds);
+        batchMetadataRepository.deleteAllJobExecutionParamsInJobExecutionIds(targetIds);
         batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(targetIds);
         batchMetadataRepository.deleteAllStepExecutionInJobExecutionIds(targetIds);
-        long actual = batchMetadataRepository.deleteAllJobInstanceInJobExecutionIds(targetIds);
+        List<Long> jobInstanceIds = batchMetadataRepository.selectAllJobInstanceIdsInJobExecutionIds(targetIds);
+        batchMetadataRepository.deleteAllJobExecutionInJobExecutionIds(targetIds);
+        long actual = batchMetadataRepository.deleteAllJobInstanceInJobInstanceIds(jobInstanceIds);
 
         assertThat(actual).isEqualTo(1L);
         assertThat(count("select count(*) from batch_job_execution where job_execution_id = 1")).isEqualTo(0L);
