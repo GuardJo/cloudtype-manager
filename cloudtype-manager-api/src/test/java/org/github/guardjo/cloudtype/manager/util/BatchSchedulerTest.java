@@ -2,6 +2,7 @@ package org.github.guardjo.cloudtype.manager.util;
 
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.repository.BatchMetadataRepository;
 import org.github.guardjo.cloudtype.manager.repository.RefreshTokenEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
@@ -52,6 +53,9 @@ class BatchSchedulerTest {
     private Job cleanupRefreshTokenJob;
 
     @Autowired
+    private Job cleanupBatchMetadataJob;
+
+    @Autowired
     private UserInfoEntityRepository userInfoEntityRepository;
 
     @Autowired
@@ -65,6 +69,9 @@ class BatchSchedulerTest {
 
     @MockitoBean
     private RefreshTokenEntityRepository refreshTokenEntityRepository;
+
+    @MockitoBean
+    private BatchMetadataRepository batchMetadataRepository;
 
     @BeforeEach
     void setUp() {
@@ -127,5 +134,34 @@ class BatchSchedulerTest {
         assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
 
         then(refreshTokenEntityRepository).should().deleteAllByModifiedAtBefore(any(LocalDateTime.class));
+    }
+
+    @DisplayName("cleanupBatchMetadataJob 배치 수행")
+    @Test
+    void test_cleanupBatchMetadataJob() throws Exception {
+        jobLauncherTestUtils.setJob(cleanupBatchMetadataJob);
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
+                .toJobParameters();
+
+        List<Long> targetExecutionIds = List.of(1L, 2L);
+
+        given(batchMetadataRepository.selectAllJobExecutionIdsByStatusIsCompletedAndEndTimeBefore(any(LocalDateTime.class), any(Integer.class)))
+                .willReturn(targetExecutionIds);
+        given(batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.deleteAllStepExecutionInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.deleteAllJobExecutionContextInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.deleteAllJobExectionParamsInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.deleteAllJobInstanceInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+
+        JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
+        assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
+
+        then(batchMetadataRepository).should().selectAllJobExecutionIdsByStatusIsCompletedAndEndTimeBefore(any(LocalDateTime.class), any(Integer.class));
+        then(batchMetadataRepository).should().deleteAllStepExecutionContextInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllStepExecutionInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllJobExecutionContextInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllJobExectionParamsInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllJobInstanceInJobExecutionIds(targetExecutionIds);
     }
 }
