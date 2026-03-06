@@ -17,18 +17,22 @@ public class BatchMetadataRepositoryImpl implements BatchMetadataRepository {
     @Override
     public List<Long> selectAllJobExecutionIdsByStatusIsCompletedAndEndTimeBefore(LocalDateTime dateTime, int limit) {
 
-        return entityManager.createNativeQuery(
-                        "select je.job_execution_id\n" +
-                                "from batch_job_execution je\n" +
-                                "where je.status = 'COMPLETED'\n" +
-                                "  and je.end_time < :targetDate\n" +
-                                "order by je.end_time\n" +
+        List<?> result = entityManager.createNativeQuery(
+                        "select je.job_execution_id " +
+                                "from batch_job_execution je " +
+                                "where je.status = 'COMPLETED' " +
+                                "  and je.end_time < :targetDate " +
+                                "order by je.end_time " +
                                 "limit :limit;"
                         , Long.class
                 )
                 .setParameter("targetDate", dateTime)
                 .setParameter("limit", limit)
                 .getResultList();
+
+        return result.stream()
+                .map(v -> ((Number) v).longValue())
+                .toList();
     }
 
     @Override
@@ -111,7 +115,7 @@ public class BatchMetadataRepositoryImpl implements BatchMetadataRepository {
             return 0;
         }
 
-        List<Long> jobInstanceIds = entityManager.createNativeQuery(
+        List<?> jobInstanceIdResultRows = entityManager.createNativeQuery(
                         "select distinct je.job_instance_id " +
                                 "from batch_job_execution je " +
                                 "where je.job_execution_id in (:jobExecutionIds)"
@@ -119,6 +123,10 @@ public class BatchMetadataRepositoryImpl implements BatchMetadataRepository {
                 )
                 .setParameter("jobExecutionIds", jobExecutionIds)
                 .getResultList();
+
+        List<Long> jobInstanceIds = jobInstanceIdResultRows.stream()
+                .map(v -> ((Number) v).longValue())
+                .toList();
 
         if (jobInstanceIds.isEmpty()) {
             return 0;
