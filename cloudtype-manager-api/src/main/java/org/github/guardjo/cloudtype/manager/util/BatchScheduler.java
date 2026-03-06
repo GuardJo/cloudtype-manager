@@ -17,6 +17,7 @@ public class BatchScheduler {
     private final JobLauncher jobLauncher;
     private final Job updateAllServerStatusJob;
     private final Job cleanupRefreshTokenJob;
+    private final Job cleanupBatchMetadataJob;
 
     @Scheduled(initialDelay = 10_000L, fixedDelay = 60_000L)
     public void runUpdateAllServerStatusJob() {
@@ -40,6 +41,20 @@ public class BatchScheduler {
             JobExecution execution = jobLauncher.run(cleanupRefreshTokenJob, new JobParametersBuilder()
                     .addLong("time", System.currentTimeMillis())
                     .toJobParameters());
+        } catch (JobExecutionException e) {
+            log.error("Failed execute batch job, cause = {}", e.getMessage(), e);
+        }
+    }
+
+    @Scheduled(cron = "0 30 3 * * *")
+    public void runCleanupBatchMetadataJob() {
+        log.info("Running cleanupBatchMetadataJob");
+
+        try {
+            JobExecution execution = jobLauncher.run(cleanupBatchMetadataJob, new JobParametersBuilder()
+                    .addLong("time", System.currentTimeMillis())
+                    .toJobParameters());
+            log.info("Finished cleanupBatchMetadataJob, status = {}", execution.getStatus());
         } catch (JobExecutionException e) {
             log.error("Failed execute batch job, cause = {}", e.getMessage(), e);
         }

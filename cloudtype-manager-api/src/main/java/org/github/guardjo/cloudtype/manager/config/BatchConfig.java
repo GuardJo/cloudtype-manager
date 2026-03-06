@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.vo.HealthCheckResult;
+import org.github.guardjo.cloudtype.manager.repository.BatchMetadataRepository;
 import org.github.guardjo.cloudtype.manager.repository.RefreshTokenEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.service.HealthCheckService;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 public class BatchConfig {
     private final static int CHUNK_SIZE = 1_000;
     private final static long CLEAR_REFRESH_TOKEN_EXPIRED_WEEK = 1L; // refresh-token의 만료 기한 (1주일)
+    private final static long CLEAR_BATCH_METADATA_COMPLETED_MONTH = 1L; // 배치 메타데이터 정리 기준 (1달)
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
@@ -49,6 +51,7 @@ public class BatchConfig {
     private final ServerInfoEntityRepository serverInfoRepository;
     private final TaskExecutor healthCheckExecutor;
     private final RefreshTokenEntityRepository refreshTokenEntityRepository;
+    private final BatchMetadataRepository batchMetadataRepository;
 
     @Bean
     public Job updateAllServerStatusJob() {
@@ -61,6 +64,13 @@ public class BatchConfig {
     public Job cleanupRefreshTokenJob() {
         return new JobBuilder("cleanupRefreshTokenJob", jobRepository)
                 .start(cleanUpRefreshTokenStep())
+                .build();
+    }
+
+    @Bean
+    public Job cleanupBatchMetadataJob() {
+        return new JobBuilder("cleanupBatchMetadataJob", jobRepository)
+                .start(cleanupBatchMetadataStep())
                 .build();
     }
 
@@ -78,6 +88,13 @@ public class BatchConfig {
     public Step cleanUpRefreshTokenStep() {
         return new StepBuilder("cleanUpRefreshTokenStep", jobRepository)
                 .tasklet(cleanupRefreshTokenTasklet(), transactionManager)
+                .build();
+    }
+
+    @Bean
+    public Step cleanupBatchMetadataStep() {
+        return new StepBuilder("cleanupBatchMetadataStep", jobRepository)
+                .tasklet(cleanupBatchMetadataTasklet(), transactionManager)
                 .build();
     }
 
@@ -147,6 +164,49 @@ public class BatchConfig {
             int deletedRows = refreshTokenEntityRepository.deleteAllByModifiedAtBefore(expiredAt);
 
             log.info("Cleanup expired refreshTokens, deletedRows = {}", deletedRows);
+
+            return RepeatStatus.FINISHED;
+        });
+    }
+
+    @Bean
+    public Tasklet cleanupBatchMetadataTasklet() {
+        return ((contribution, chunkContext) -> {
+            LocalDateTime targetDate = LocalDateTime.now().minusMonths(CLEAR_BATCH_METADATA_COMPLETED_MONTH);
+            List<Long> jobExecutionIds = batchMetadataRepository
+                    .selectAllJobExecutionIdsByStatusIsCompletedAndEndTimeBefore(targetDate, CHUNK_SIZE);
+
+            if (jobExecutionIds.isEmpty()) {
+                log.info("Cleanup expired batch metadata skipped, no target job executions");
+                return RepeatStatus.FINISHED;
+            }
+
+            List<Long> jobInstanceIds =
+                    batchMetadataRepository.selectAllJobInstanceIdsInJobExecutionIds(jobExecutionIds);
+            long stepExecutionContextDeletedRows =
+                    batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(jobExecutionIds);
+            long stepExecutionDeletedRows =
+                    batchMetadataRepository.deleteAllStepExecutionInJobExecutionIds(jobExecutionIds);
+            long jobExecutionContextDeletedRows =
+                    batchMetadataRepository.deleteAllJobExecutionContextInJobExecutionIds(jobExecutionIds);
+            long jobExecutionParamDeletedRows =
+                    batchMetadataRepository.deleteAllJobExecutionParamsInJobExecutionIds(jobExecutionIds);
+            long jobExecutionDeletedRows =
+                    batchMetadataRepository.deleteAllJobExecutionInJobExecutionIds(jobExecutionIds);
+            long jobInstanceDeletedRows =
+                    batchMetadataRepository.deleteAllJobInstanceInJobInstanceIds(jobInstanceIds);
+
+            log.info(
+                    "Cleanup expired batch metadata, targetJobExecutionCount = {}, targetJobInstanceCount = {}, deletedRows(stepExecutionContext={}, stepExecution={}, jobExecutionContext={}, jobExecutionParam={}, jobExecution={}, jobInstance={})",
+                    jobExecutionIds.size(),
+                    jobInstanceIds.size(),
+                    stepExecutionContextDeletedRows,
+                    stepExecutionDeletedRows,
+                    jobExecutionContextDeletedRows,
+                    jobExecutionParamDeletedRows,
+                    jobExecutionDeletedRows,
+                    jobInstanceDeletedRows
+            );
 
             return RepeatStatus.FINISHED;
         });

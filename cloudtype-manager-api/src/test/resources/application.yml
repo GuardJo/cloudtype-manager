@@ -16,9 +16,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        show_sql: true
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
+    url: jdbc:tc:postgresql:17.5:///testdb
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
     username: sa
   batch:
     jdbc:
@@ -33,6 +34,6 @@ jwt:
 logging:
   level:
     org.github.guardjo.cloudtype.manager: debug
-    
+
 firebase:
   credentials-path: classpath:secrets/firebase-service-account.json

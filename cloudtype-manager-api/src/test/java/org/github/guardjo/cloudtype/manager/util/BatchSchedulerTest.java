@@ -2,6 +2,7 @@ package org.github.guardjo.cloudtype.manager.util;
 
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.repository.BatchMetadataRepository;
 import org.github.guardjo.cloudtype.manager.repository.RefreshTokenEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
@@ -14,10 +15,15 @@ import org.springframework.batch.core.*;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +37,8 @@ import static org.mockito.Mockito.times;
 
 @SpringBatchTest
 @SpringBootTest
-@Sql(scripts = "classpath:org/springframework/batch/core/schema-h2.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class BatchSchedulerTest {
     private final static UserInfoEntity TEST_USER = TestDataGenerator.userInfoEntity("Tester");
     private final static List<ServerInfoEntity> SERVER_INFOS = new ArrayList<>();
@@ -46,10 +53,16 @@ class BatchSchedulerTest {
     private Job cleanupRefreshTokenJob;
 
     @Autowired
+    private Job cleanupBatchMetadataJob;
+
+    @Autowired
     private UserInfoEntityRepository userInfoEntityRepository;
 
     @Autowired
     private ServerInfoEntityRepository serverInfoEntityRepository;
+
+    @Autowired
+    private DataSource dataSource;
 
     @MockitoBean
     private HealthCheckService healthCheckService;
@@ -57,8 +70,12 @@ class BatchSchedulerTest {
     @MockitoBean
     private RefreshTokenEntityRepository refreshTokenEntityRepository;
 
+    @MockitoBean
+    private BatchMetadataRepository batchMetadataRepository;
+
     @BeforeEach
     void setUp() {
+        initializeBatchSchemaIfMissing();
         userInfoEntityRepository.save(TEST_USER);
 
         for (int i = 0; i < 10; i++) {
@@ -73,6 +90,17 @@ class BatchSchedulerTest {
         serverInfoEntityRepository.deleteAll();
         userInfoEntityRepository.deleteAll();
         SERVER_INFOS.clear();
+    }
+
+    private void initializeBatchSchemaIfMissing() {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        String relationName = jdbcTemplate.queryForObject("select to_regclass('batch_job_instance')", String.class);
+
+        if (relationName == null) {
+            ResourceDatabasePopulator populator = new ResourceDatabasePopulator(
+                    new ClassPathResource("org/springframework/batch/core/schema-postgresql.sql"));
+            populator.execute(dataSource);
+        }
     }
 
     @DisplayName("updateAllServerStatusJob 배치 수행")
@@ -106,5 +134,38 @@ class BatchSchedulerTest {
         assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
 
         then(refreshTokenEntityRepository).should().deleteAllByModifiedAtBefore(any(LocalDateTime.class));
+    }
+
+    @DisplayName("cleanupBatchMetadataJob 배치 수행")
+    @Test
+    void test_cleanupBatchMetadataJob() throws Exception {
+        jobLauncherTestUtils.setJob(cleanupBatchMetadataJob);
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addLong("time", System.currentTimeMillis())
+                .toJobParameters();
+
+        List<Long> targetExecutionIds = List.of(1L, 2L);
+
+        given(batchMetadataRepository.selectAllJobExecutionIdsByStatusIsCompletedAndEndTimeBefore(any(LocalDateTime.class), any(Integer.class)))
+                .willReturn(targetExecutionIds);
+        given(batchMetadataRepository.deleteAllStepExecutionContextInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.deleteAllStepExecutionInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.deleteAllJobExecutionContextInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.deleteAllJobExecutionParamsInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.selectAllJobInstanceIdsInJobExecutionIds(targetExecutionIds)).willReturn(targetExecutionIds);
+        given(batchMetadataRepository.deleteAllJobExecutionInJobExecutionIds(targetExecutionIds)).willReturn(2L);
+        given(batchMetadataRepository.deleteAllJobInstanceInJobInstanceIds(targetExecutionIds)).willReturn(2L);
+
+        JobExecution jobExecution = jobLauncherTestUtils.launchJob(jobParameters);
+        assertThat(jobExecution.getStatus()).isEqualTo(BatchStatus.COMPLETED);
+
+        then(batchMetadataRepository).should().selectAllJobExecutionIdsByStatusIsCompletedAndEndTimeBefore(any(LocalDateTime.class), any(Integer.class));
+        then(batchMetadataRepository).should().selectAllJobInstanceIdsInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllStepExecutionContextInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllStepExecutionInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllJobExecutionContextInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllJobExecutionParamsInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllJobExecutionInJobExecutionIds(targetExecutionIds);
+        then(batchMetadataRepository).should().deleteAllJobInstanceInJobInstanceIds(targetExecutionIds);
     }
 }
