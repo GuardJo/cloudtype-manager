@@ -15,6 +15,10 @@ export GOOGLE_OAUTH2_REDIRECT_URL=$(aws ssm get-parameter --name /cloudtype-mana
 export JWT_TOKEN_SECRET=$(aws ssm get-parameter --name /cloudtype-manager-params/jwt-token-secret --query Parameter.Value | sed 's/"//g')
 export FRONTEND_AUTH_CALLBACK_URL=$(aws ssm get-parameter --name /cloudtype-manager-params/frontend-auth-callback-url --query Parameter.Value | sed 's/"//g')
 export FIREBASE_CREDENTIALS_PATH=$(aws ssm get-parameter --name /cloudtype-manager-params/firebase-credentials-path --query Parameter.Value | sed 's/"//g')
+export REDIS_HOST=$(aws ssm get-parameter --name /cloudtype-manager-params/redis-host --query Parameter.Value | sed 's/"//g')
+export REDIS_PASSWORD=$(aws ssm get-parameter --name /cloudtype-manager-params/redis-password --query Parameter.Value | sed 's/"//g')
+export REDIS_PORT=$(aws ssm get-parameter --name /cloudtype-manager-params/redis-port --query Parameter.Value | sed 's/"//g')
+export REDIS_USERNAME=$(aws ssm get-parameter --name /cloudtype-manager-params/redis-username --query Parameter.Value | sed 's/"//g')
 
 cd $DEPLOY_PATH
 
