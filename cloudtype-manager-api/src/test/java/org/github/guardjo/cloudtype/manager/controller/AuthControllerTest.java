@@ -7,6 +7,7 @@ import org.github.guardjo.cloudtype.manager.config.TestSecurityConfig;
 import org.github.guardjo.cloudtype.manager.config.auth.JwtTokenProvider;
 import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.request.LogoutRequest;
 import org.github.guardjo.cloudtype.manager.model.request.RefreshTokenRequest;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.github.guardjo.cloudtype.manager.model.vo.AuthTokenInfo;
@@ -31,10 +32,10 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.mock;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -113,6 +114,62 @@ class AuthControllerTest {
         then(tokenProvider).should().getAuthentication(eq(refreshToken));
         then(mockAuthentication).should().getPrincipal();
         then(tokenProvider).should().generateAuthTokenInfo(eq(refreshToken), eq(TEST_USER.getUsername()));
+    }
+
+    @DisplayName("POST : /api/v1/auth/logout")
+    @Test
+    void test_logout() throws Exception {
+        AuthTokenInfo authTokenInfo = new AuthTokenInfo("test-access", "test-refresh");
+        LogoutRequest logoutRequest = new LogoutRequest(TEST_USER_DETAILS.getUsername(), authTokenInfo.accessToken(), authTokenInfo.refreshToken());
+        String requestContent = objectMapper.writeValueAsString(logoutRequest);
+
+        willDoNothing().given(tokenProvider).invalidateAuthToken(eq(authTokenInfo));
+
+        String response = mockMvc.perform(post("/api/v1/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestContent)
+                        .with(user(TEST_USER_DETAILS))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+
+        JavaType responseType = objectMapper.getTypeFactory().constructParametricType(BaseResponse.class, String.class);
+        BaseResponse<String> actual = objectMapper.readValue(response, responseType);
+
+        assertThat(actual).isNotNull();
+        assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(actual.getStatus()).isEqualTo(HttpStatus.OK.name());
+
+        then(tokenProvider).should().invalidateAuthToken(eq(authTokenInfo));
+    }
+
+    @DisplayName("POST : /api/v1/auth/logout : Forbidden")
+    @Test
+    void test_logout_forbidden_user_request() throws Exception {
+        AuthTokenInfo authTokenInfo = new AuthTokenInfo("test-access", "test-refresh");
+        LogoutRequest logoutRequest = new LogoutRequest("UNKNOWN", authTokenInfo.accessToken(), authTokenInfo.refreshToken());
+        String requestContent = objectMapper.writeValueAsString(logoutRequest);
+
+        String response = mockMvc.perform(post("/api/v1/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestContent)
+                        .with(user(TEST_USER_DETAILS))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+
+        JavaType responseType = objectMapper.getTypeFactory().constructParametricType(BaseResponse.class, String.class);
+        BaseResponse<String> actual = objectMapper.readValue(response, responseType);
+ 
+        assertThat(actual).isNotNull();
+        assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(actual.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.name());
     }
 
     private static Stream<Arguments> getRefreshAccessTokenTestData() {
