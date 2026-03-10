@@ -86,4 +86,11 @@ public class TestDataGenerator {
                 .errorCategory("BAD_REQUEST")
                 .build();
     }
+
+    public static AccessBlackHash accessBlackHash(String token, int ttl) {
+        return AccessBlackHash.builder()
+                .token(token)
+                .ttl(ttl)
+                .build();
+    }
 }

@@ -28,7 +28,12 @@ spring:
   batch:
     jdbc:
       initialize-schema: never
-
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      username: ${REDIS_USERNAME:default}
+      password: ${REDIS_PASSWORD:default0}
 jwt:
   secret: ${JWT_TOKEN_SECRET}
   access-token-expiration-millis: 1_800_000 # 30 minutes
