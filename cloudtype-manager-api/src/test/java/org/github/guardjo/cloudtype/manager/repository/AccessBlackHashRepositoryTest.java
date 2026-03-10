@@ -14,7 +14,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @DataRedisTest
 @Testcontainers
@@ -64,14 +67,10 @@ class AccessBlackHashRepositoryTest {
 
     @DisplayName("유효기간 만료된 토큰 삭제 여부 조회")
     @Test
-    void test_expireByTtl() throws Exception {
+    void test_expireByTtl() {
         accessBlackHashRepository.save(TestDataGenerator.accessBlackHash(TOKEN, 1));
 
-        long deadline = System.currentTimeMillis() + 5000;
-        while (System.currentTimeMillis() < deadline && accessBlackHashRepository.existsById(TOKEN)) {
-            Thread.sleep(200);
-        }
-
-        assertThat(accessBlackHashRepository.existsById(TOKEN)).isFalse();
+        await().atMost(Duration.ofSeconds(2L))
+                .untilAsserted(() -> assertThat(accessBlackHashRepository.existsById(TOKEN)).isFalse());
     }
 }

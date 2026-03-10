@@ -221,13 +221,13 @@ public class JwtTokenProvider {
                 .build();
 
         accessBlackHashRepository.save(accessBlackHash);
-        log.info("Access token is invalidated, token = {}, ttl = {}", accessBlackHash.getToken(), accessBlackHash.getTtl());
+        log.debug("Access token is invalidated, token = {}, ttl = {}", accessBlackHash.getToken(), accessBlackHash.getTtl());
     }
 
     /* 로그아웃된 refresh_token 제거 처리 */
     private void invalidateRefreshToken(String refreshToken) {
         int deletedRows = refreshTokenRepository.deleteAllByToken(refreshToken);
 
-        log.info("Refresh token is invalidated, token = {}, deletedRows = {}", refreshToken, deletedRows);
+        log.debug("Refresh token is invalidated, deletedRows = {}", deletedRows);
     }
 }
