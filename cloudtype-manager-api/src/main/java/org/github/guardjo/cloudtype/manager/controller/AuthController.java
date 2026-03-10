@@ -44,11 +44,11 @@ public class AuthController implements AuthApiDoc {
         log.info("POST : /api/v1/auth/logout, principal = {}, username = {}", principal.getUsername(), logoutRequest.username());
 
         if (!principal.getUsername().equals(logoutRequest.username())) {
-            log.warn("Logout request username is not same as principal username");
-            throw new AccessDeniedException("Logout request username is not same as principal username");
+            log.warn("Logout request username is not same as principal");
+            throw new AccessDeniedException("Logout request username is not same as principal");
         }
 
-        jwtTokenProvider.invalidateAuthToken(new AuthTokenInfo(logoutRequest.accessToken(), logoutRequest.refreshToken()));
+        jwtTokenProvider.invalidateAuthToken(new AuthTokenInfo(logoutRequest.accessToken(), logoutRequest.refreshToken()), principal.getUsername());
 
         return BaseResponse.defaultSuccess();
     }

@@ -23,6 +23,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -123,7 +124,7 @@ class AuthControllerTest {
         LogoutRequest logoutRequest = new LogoutRequest(TEST_USER_DETAILS.getUsername(), authTokenInfo.accessToken(), authTokenInfo.refreshToken());
         String requestContent = objectMapper.writeValueAsString(logoutRequest);
 
-        willDoNothing().given(tokenProvider).invalidateAuthToken(eq(authTokenInfo));
+        willDoNothing().given(tokenProvider).invalidateAuthToken(eq(authTokenInfo), eq(TEST_USER_DETAILS.getUsername()));
 
         String response = mockMvc.perform(post("/api/v1/auth/logout")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -143,12 +144,42 @@ class AuthControllerTest {
         assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(actual.getStatus()).isEqualTo(HttpStatus.OK.name());
 
-        then(tokenProvider).should().invalidateAuthToken(eq(authTokenInfo));
+        then(tokenProvider).should().invalidateAuthToken(eq(authTokenInfo), eq(TEST_USER_DETAILS.getUsername()));
     }
 
-    @DisplayName("POST : /api/v1/auth/logout : Forbidden")
+    @DisplayName("POST : /api/v1/auth/logout : Forbidden -> 인증 회원 정보와 요청 데이터 내 토큰 불일치")
     @Test
-    void test_logout_forbidden_user_request() throws Exception {
+    void test_logout_forbidden_not_equals_principal_and_request_access_token() throws Exception {
+        AuthTokenInfo authTokenInfo = new AuthTokenInfo("test-access", "test-refresh");
+        LogoutRequest logoutRequest = new LogoutRequest(TEST_USER_DETAILS.getUsername(), authTokenInfo.accessToken(), authTokenInfo.refreshToken());
+        String requestContent = objectMapper.writeValueAsString(logoutRequest);
+
+        willThrow(AccessDeniedException.class).given(tokenProvider).invalidateAuthToken(eq(authTokenInfo), eq(TEST_USER_DETAILS.getUsername()));
+
+        String response = mockMvc.perform(post("/api/v1/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestContent)
+                        .with(user(TEST_USER_DETAILS))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+
+        JavaType responseType = objectMapper.getTypeFactory().constructParametricType(BaseResponse.class, String.class);
+        BaseResponse<String> actual = objectMapper.readValue(response, responseType);
+
+        assertThat(actual).isNotNull();
+        assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(actual.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.name());
+
+        then(tokenProvider).should().invalidateAuthToken(eq(authTokenInfo), eq(TEST_USER_DETAILS.getUsername()));
+    }
+
+    @DisplayName("POST : /api/v1/auth/logout : Forbidden -> 인증 회원 정보와 요청 데이터 내 회원 정보 불일치")
+    @Test
+    void test_logout_forbidden_not_equals_principal_and_request_username() throws Exception {
         AuthTokenInfo authTokenInfo = new AuthTokenInfo("test-access", "test-refresh");
         LogoutRequest logoutRequest = new LogoutRequest("UNKNOWN", authTokenInfo.accessToken(), authTokenInfo.refreshToken());
         String requestContent = objectMapper.writeValueAsString(logoutRequest);
@@ -166,7 +197,7 @@ class AuthControllerTest {
 
         JavaType responseType = objectMapper.getTypeFactory().constructParametricType(BaseResponse.class, String.class);
         BaseResponse<String> actual = objectMapper.readValue(response, responseType);
- 
+
         assertThat(actual).isNotNull();
         assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN.value());
         assertThat(actual.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.name());

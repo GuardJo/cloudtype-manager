@@ -29,12 +29,13 @@ public interface RefreshTokenEntityRepository extends JpaRepository<RefreshToken
     int deleteAllByModifiedAtBefore(@Param("expiredAt") LocalDateTime expiredAt);
 
     /**
-     * 주어진 토큰 값에 해당하는 refresh_token 데이터들을 삭제한다.
+     * 주어진 토큰 및 회원 식별키에 해당하는 refresh_token 데이터들을 삭제한다.
      *
-     * @param token refresh_token
+     * @param token    refresh_token
+     * @param username 회원 식별키
      * @return 삭제된 row 수
      */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("delete from RefreshTokenEntity r where r.token = :token")
-    int deleteAllByToken(@Param("token") String token);
+    @Query("delete from RefreshTokenEntity r where r.token = :token and r.userInfo.username = :username")
+    int deleteAllByToken(@Param("token") String token, @Param("username") String username);
 }

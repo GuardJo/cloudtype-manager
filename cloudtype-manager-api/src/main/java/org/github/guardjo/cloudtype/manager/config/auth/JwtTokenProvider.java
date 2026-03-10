@@ -14,6 +14,7 @@ import org.github.guardjo.cloudtype.manager.model.vo.AuthTokenInfo;
 import org.github.guardjo.cloudtype.manager.repository.AccessBlackHashRepository;
 import org.github.guardjo.cloudtype.manager.repository.RefreshTokenEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -109,6 +110,52 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) throws AuthenticationException {
         checkAlreadyLogout(token);
 
+        Claims claims = getClaims(token);
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+
+    /**
+     * 인자로 들어온 access_token, refresh_token에 대해 인가 제외 처리
+     * <hr/>
+     * <i>로그아웃 처리</i>
+     *
+     * @param authTokenInfo 인증토큰 정보
+     * @param username      회원 식별 아이디
+     */
+    @Transactional
+    public void invalidateAuthToken(AuthTokenInfo authTokenInfo, String username) {
+        invalidateAccessToken(authTokenInfo.accessToken(), username);
+        invalidateRefreshToken(authTokenInfo.refreshToken(), username);
+    }
+
+    /**
+     * 주어진 token에 대한 유휴성 검증 작업을 수행한다.
+     *
+     * @param token JWT 토큰
+     * @return 유효 여부 반환
+     */
+    protected boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
+            return true;
+        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            log.error("Invalid JWT Token", e);
+        } catch (ExpiredJwtException e) {
+            log.error("Expired JWT Token", e);
+        } catch (UnsupportedJwtException e) {
+            log.error("Unsupported JWT Token", e);
+        } catch (IllegalArgumentException e) {
+            log.error("JWT claims string is empty.", e);
+        }
+        return false;
+    }
+
+    /*
+    access-token 내 claim 추출
+     */
+    private Claims getClaims(String token) {
         Claims claims = null;
         try {
             claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
@@ -132,43 +179,7 @@ public class JwtTokenProvider {
             throw new InsufficientAuthenticationException("Invalid JWT audience");
         }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-    }
-
-    /**
-     * 인자로 들어온 access_token, refresh_token에 대해 인가 제외 처리
-     * <hr/>
-     * <i>로그아웃 처리</i>
-     *
-     * @param authTokenInfo 인증토큰 정보
-     */
-    @Transactional
-    public void invalidateAuthToken(AuthTokenInfo authTokenInfo) {
-        invalidateAccessToken(authTokenInfo.accessToken());
-        invalidateRefreshToken(authTokenInfo.refreshToken());
-    }
-
-    /**
-     * 주어진 token에 대한 유휴성 검증 작업을 수행한다.
-     *
-     * @param token JWT 토큰
-     * @return 유효 여부 반환
-     */
-    protected boolean validateToken(String token) {
-        try {
-            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
-            return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.error("Invalid JWT Token", e);
-        } catch (ExpiredJwtException e) {
-            log.error("Expired JWT Token", e);
-        } catch (UnsupportedJwtException e) {
-            log.error("Unsupported JWT Token", e);
-        } catch (IllegalArgumentException e) {
-            log.error("JWT claims string is empty.", e);
-        }
-        return false;
+        return claims;
     }
 
     /*
@@ -214,7 +225,15 @@ public class JwtTokenProvider {
     }
 
     /* 로그아웃된 access_token black 처리 (유효 기간 동안) */
-    private void invalidateAccessToken(String accessToken) {
+    private void invalidateAccessToken(String accessToken, String username) {
+        Claims claims = getClaims(accessToken);
+        String claimsSubject = claims.getSubject();
+
+        if (!claimsSubject.equals(username)) {
+            log.error("Do not equals token subject and username, subject = {}, username = {}", claimsSubject, username);
+            throw new AccessDeniedException("Do not equals token subject and username");
+        }
+
         AccessBlackHash accessBlackHash = AccessBlackHash.builder()
                 .token(accessToken)
                 .ttl((int) (jwtProperties.getAccessTokenExpirationMillis() / 1_000L))
@@ -225,8 +244,8 @@ public class JwtTokenProvider {
     }
 
     /* 로그아웃된 refresh_token 제거 처리 */
-    private void invalidateRefreshToken(String refreshToken) {
-        int deletedRows = refreshTokenRepository.deleteAllByToken(refreshToken);
+    private void invalidateRefreshToken(String refreshToken, String username) {
+        int deletedRows = refreshTokenRepository.deleteAllByToken(refreshToken, username);
 
         log.debug("Refresh token is invalidated, deletedRows = {}", deletedRows);
     }

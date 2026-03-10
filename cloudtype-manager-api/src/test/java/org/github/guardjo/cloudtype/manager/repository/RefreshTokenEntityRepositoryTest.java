@@ -72,7 +72,7 @@ class RefreshTokenEntityRepositoryTest {
         refreshTokenEntityRepository.save(newRefreshToken);
 
         long totalCount = refreshTokenEntityRepository.count();
-        int deletedRow = refreshTokenEntityRepository.deleteAllByToken(newRefreshToken.getToken());
+        int deletedRow = refreshTokenEntityRepository.deleteAllByToken(newRefreshToken.getToken(), TEST_USER.getUsername());
 
         assertThat(totalCount).isNotZero();
         assertThat(deletedRow).isEqualTo(1);
