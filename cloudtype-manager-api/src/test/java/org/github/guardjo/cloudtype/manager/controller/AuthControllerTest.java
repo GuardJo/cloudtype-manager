@@ -66,7 +66,7 @@ class AuthControllerTest {
 
         if (StringUtils.isNotBlank(refreshToken)) {
             Authentication mockAuthentication = mock(Authentication.class);
-            given(tokenProvider.getAuthentication(eq(refreshToken))).willReturn(mockAuthentication);
+            given(tokenProvider.getRefreshAuthentication(eq(refreshToken))).willReturn(mockAuthentication);
             given(mockAuthentication.getPrincipal()).willReturn(TEST_USER_DETAILS);
         }
 
@@ -101,7 +101,7 @@ class AuthControllerTest {
         String requestContent = objectMapper.writeValueAsString(refreshRequest);
         Authentication mockAuthentication = mock(Authentication.class);
 
-        given(tokenProvider.getAuthentication(eq(refreshToken))).willReturn(mockAuthentication);
+        given(tokenProvider.getRefreshAuthentication(eq(refreshToken))).willReturn(mockAuthentication);
         given(mockAuthentication.getPrincipal()).willReturn(TEST_USER_DETAILS);
         given(tokenProvider.generateAuthTokenInfo(eq(refreshToken), eq(TEST_USER.getUsername()))).willThrow(MalformedJwtException.class);
 
@@ -112,7 +112,7 @@ class AuthControllerTest {
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
 
-        then(tokenProvider).should().getAuthentication(eq(refreshToken));
+        then(tokenProvider).should().getRefreshAuthentication(eq(refreshToken));
         then(mockAuthentication).should().getPrincipal();
         then(tokenProvider).should().generateAuthTokenInfo(eq(refreshToken), eq(TEST_USER.getUsername()));
     }
