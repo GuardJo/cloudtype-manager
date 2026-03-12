@@ -101,19 +101,25 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 토큰 데이터를 기반으로 토큰에 해당하는 인증객체를 반환한다.
+     * 인증 토큰 데이터를 기반으로 토큰에 해당하는 인증객체를 반환한다.
      *
-     * @param token JWT 토큰
+     * @param accessToken JWT 토큰
      * @return 인증 객체
      * @throws AuthenticationException 복호화된 JWT 토큰 내 데이터 인가 절차 간 문제 발생
      */
-    public Authentication getAuthentication(String token) throws AuthenticationException {
-        checkAlreadyLogout(token);
+    public Authentication getAuthentication(String accessToken) throws AuthenticationException {
+        return getAuthentication(accessToken, jwtProperties.getAccessAudience());
+    }
 
-        Claims claims = getClaims(token);
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    /**
+     * 리프레시 토큰 데이터를 기반으로 토큰에 해당하는 인증객체를 반환한다.
+     *
+     * @param refreshToken JWT 토큰
+     * @return 인증 객체
+     * @throws AuthenticationException 복호화된 JWT 토큰 내 데이터 인가 절차 간 문제 발생
+     */
+    public Authentication getRefreshAuthentication(String refreshToken) throws AuthenticationException {
+        return getAuthentication(refreshToken, jwtProperties.getRefreshAudience());
     }
 
     /**
@@ -153,9 +159,23 @@ public class JwtTokenProvider {
     }
 
     /*
-    access-token 내 claim 추출
+    토큰 데이터를 기반으로 토큰에 해당하는 인증객체를 반환한다.
+    */
+    private Authentication getAuthentication(String token, String audienceType) throws AuthenticationException {
+        if (jwtProperties.getAccessAudience().equals(audienceType)) {
+            checkAlreadyLogout(token);
+        }
+
+        Claims claims = getClaims(token, audienceType);
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+
+    /*
+    token 내 claim 추출
      */
-    private Claims getClaims(String token) {
+    private Claims getClaims(String token, String audienceType) {
         Claims claims = null;
         try {
             claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
@@ -174,7 +194,7 @@ public class JwtTokenProvider {
             throw new BadCredentialsException("JWT claims string is empty.");
         }
 
-        if (StringUtils.isEmpty(claims.getAudience()) || !claims.getAudience().equals(jwtProperties.getAccessAudience())) {
+        if (StringUtils.isEmpty(claims.getAudience()) || !claims.getAudience().equals(audienceType)) {
             log.error("Invalid JWT audience, aud = {}, token = {}", claims.getAudience(), token);
             throw new InsufficientAuthenticationException("Invalid JWT audience");
         }
@@ -183,11 +203,11 @@ public class JwtTokenProvider {
     }
 
     /*
-    이미 로그아웃 처리된 token인지 여부 검증
+    이미 로그아웃 처리된 access-token인지 여부 검증
      */
-    private void checkAlreadyLogout(String token) {
-        if (accessBlackHashRepository.existsById(token)) {
-            log.error("Access token is already logout, token = {}", token);
+    private void checkAlreadyLogout(String accessToken) {
+        if (accessBlackHashRepository.existsById(accessToken)) {
+            log.error("Access token is already logout, token = {}", accessToken);
             throw new BadCredentialsException("Access token is already logout");
         }
     }
@@ -226,7 +246,7 @@ public class JwtTokenProvider {
 
     /* 로그아웃된 access_token black 처리 (유효 기간 동안) */
     private void invalidateAccessToken(String accessToken, String username) {
-        Claims claims = getClaims(accessToken);
+        Claims claims = getClaims(accessToken, jwtProperties.getAccessAudience());
         String claimsSubject = claims.getSubject();
 
         if (!claimsSubject.equals(username)) {

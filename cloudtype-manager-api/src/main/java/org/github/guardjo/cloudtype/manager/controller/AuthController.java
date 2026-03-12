@@ -28,7 +28,7 @@ public class AuthController implements AuthApiDoc {
     @PostMapping("/refresh")
     @Override
     public BaseResponse<AuthTokenInfo> refreshAccessToken(@RequestBody @Valid RefreshTokenRequest refreshRequest) {
-        Authentication authentication = jwtTokenProvider.getAuthentication(refreshRequest.refreshToken());
+        Authentication authentication = jwtTokenProvider.getRefreshAuthentication(refreshRequest.refreshToken());
         UserInfoPrincipal principal = (UserInfoPrincipal) authentication.getPrincipal();
 
         log.info("POST : /api/v1/auth/refresh, username = {}", principal.getUsername());
