@@ -162,7 +162,9 @@ public class JwtTokenProvider {
     토큰 데이터를 기반으로 토큰에 해당하는 인증객체를 반환한다.
     */
     private Authentication getAuthentication(String token, String audienceType) throws AuthenticationException {
-        checkAlreadyLogout(token);
+        if (jwtProperties.getAccessAudience().equals(audienceType)) {
+            checkAlreadyLogout(token);
+        }
 
         Claims claims = getClaims(token, audienceType);
 
@@ -201,11 +203,11 @@ public class JwtTokenProvider {
     }
 
     /*
-    이미 로그아웃 처리된 token인지 여부 검증
+    이미 로그아웃 처리된 access-token인지 여부 검증
      */
-    private void checkAlreadyLogout(String token) {
-        if (accessBlackHashRepository.existsById(token)) {
-            log.error("Access token is already logout, token = {}", token);
+    private void checkAlreadyLogout(String accessToken) {
+        if (accessBlackHashRepository.existsById(accessToken)) {
+            log.error("Access token is already logout, token = {}", accessToken);
             throw new BadCredentialsException("Access token is already logout");
         }
     }
