@@ -57,6 +57,11 @@ public class AppPushServiceImpl implements AppPushService {
                 .getToken();
     }
 
+    @Override
+    public void updateAppPushToken(String username, AppPushTokenRequest tokenRequest) {
+        // TODO 기능 구현하기
+    }
+
     /*
     AppPushToken 조회
      */

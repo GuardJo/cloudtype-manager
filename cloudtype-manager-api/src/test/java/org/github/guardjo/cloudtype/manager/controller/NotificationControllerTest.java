@@ -19,6 +19,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,5 +59,27 @@ class NotificationControllerTest {
                 .andExpect(status().isOk());
 
         then(appPushService).should().saveAppPushToken(eq(tokenRequest), eq(TEST_USER.getUserInfo()));
+    }
+
+    @DisplayName("PATCH : /api/v1/notifications/push-token")
+    @Test
+    void test_updatePushToken() throws Exception {
+        String device = "WEB";
+        String token = "update-push-token";
+
+        AppPushTokenRequest tokenRequest = new AppPushTokenRequest(device, token);
+        String requestContent = objectMapper.writeValueAsString(tokenRequest);
+
+        willDoNothing().given(appPushService).updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
+
+        mockMvc.perform(patch("/api/v1/notifications/push-token")
+                        .content(requestContent)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user(TEST_USER)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        then(appPushService).should().updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
     }
 }

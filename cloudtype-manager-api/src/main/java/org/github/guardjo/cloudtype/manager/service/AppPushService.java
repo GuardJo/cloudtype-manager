@@ -24,4 +24,13 @@ public interface AppPushService {
      * @throws jakarta.persistence.EntityNotFoundException 해당하는 Entity가 존재하지 않을 경우
      */
     String getAppPushToken(String userId, String deviceId);
+
+    /**
+     * 주어진 회원의 device에 대한 app_push_token 값 변경
+     *
+     * @param username     회원 식별키
+     * @param tokenRequest 변경 요청 사항 (device, push_token)
+     * @throws jakarta.persistence.EntityNotFoundException 해당하는 Entity가 존재하지 않을 경우
+     */
+    void updateAppPushToken(String username, AppPushTokenRequest tokenRequest);
 }
