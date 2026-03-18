@@ -36,7 +36,7 @@ public class NotificationController implements NotificationApiDoc {
                                                 @RequestBody @Valid AppPushTokenRequest request) {
         log.info("PATCH : /api/v1/notifications/push-token, username = {}, token = {}, device = {}", principal.getUsername(), request.token(), request.device());
 
-        // TODO 기능 연동하기
+        appPushService.updateAppPushToken(principal.getUsername(), request);
 
         return BaseResponse.defaultSuccess();
     }

@@ -117,4 +117,26 @@ class AppPushServiceTest {
 
         then(appPushTokenEntityRepository).should().findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId));
     }
+
+    @DisplayName("특정회원의 디바이스에 해당하는 앱푸시토큰 갱신")
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void test_updateAppPushToken(boolean hasData) {
+        String pushToken = "test-token";
+        String deviceId = "test-device";
+        String userId = TESTE_USER_ENTITY.getUsername();
+
+        if (hasData) {
+            AppPushTokenEntity oldToken = TestDataGenerator.appPushTokenEntity(pushToken, deviceId, TESTE_USER_ENTITY);
+            given(appPushTokenEntityRepository.findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId))).willReturn(Optional.of(oldToken));
+            assertThatCode(() -> appPushService.updateAppPushToken(userId, new AppPushTokenRequest(deviceId, pushToken)))
+                    .doesNotThrowAnyException();
+        } else {
+            given(appPushTokenEntityRepository.findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId))).willReturn(Optional.empty());
+            assertThatCode(() -> appPushService.updateAppPushToken(userId, new AppPushTokenRequest(deviceId, pushToken)))
+                    .isInstanceOf(EntityNotFoundException.class);
+        }
+
+        then(appPushTokenEntityRepository).should().findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId));
+    }
 }
