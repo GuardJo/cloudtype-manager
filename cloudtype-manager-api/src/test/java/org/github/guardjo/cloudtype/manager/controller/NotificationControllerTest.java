@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -101,6 +102,28 @@ class NotificationControllerTest {
                         .with(user(TEST_USER)))
                 .andDo(print())
                 .andExpect(status().isNotFound());
+
+        then(appPushService).should().updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
+    }
+
+    @DisplayName("PATCH : /api/v1/notifications/push-token : Conflict")
+    @Test
+    void test_updatePushToken_duplicate_token() throws Exception {
+        String device = "WEB";
+        String token = "update-push-token";
+
+        AppPushTokenRequest tokenRequest = new AppPushTokenRequest(device, token);
+        String requestContent = objectMapper.writeValueAsString(tokenRequest);
+
+        willThrow(DuplicateKeyException.class).given(appPushService).updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
+
+        mockMvc.perform(patch("/api/v1/notifications/push-token")
+                        .content(requestContent)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user(TEST_USER)))
+                .andDo(print())
+                .andExpect(status().isConflict());
 
         then(appPushService).should().updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
     }

@@ -9,6 +9,7 @@ import org.github.guardjo.cloudtype.manager.model.request.AppPushTokenRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.repository.AppPushTokenEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,6 +59,14 @@ public class AppPushServiceImpl implements AppPushService {
     @Transactional
     public void updateAppPushToken(String username, AppPushTokenRequest tokenRequest) {
         AppPushTokenEntity appPushTokenEntity = searchAppPushToken(username, tokenRequest.device());
+
+        searchAppPushToken(tokenRequest.token())
+                .ifPresent((existedToken) -> {
+                    if (!existedToken.getId().equals(appPushTokenEntity.getId())) {
+                        log.warn("Already exist fcm-token, token = {}", tokenRequest.token());
+                        throw new DuplicateKeyException(String.format("Already exist fcm-token, token = %s", tokenRequest.token()));
+                    }
+                });
 
         appPushTokenEntity.setToken(tokenRequest.token());
 

@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DuplicateKeyException;
 
 import java.util.Optional;
 
@@ -26,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AppPushServiceTest {
@@ -125,18 +126,43 @@ class AppPushServiceTest {
         String pushToken = "test-token";
         String deviceId = "test-device";
         String userId = TESTE_USER_ENTITY.getUsername();
+        AppPushTokenRequest request = new AppPushTokenRequest(deviceId, "update-token");
 
         if (hasData) {
-            AppPushTokenEntity oldToken = TestDataGenerator.appPushTokenEntity(pushToken, deviceId, TESTE_USER_ENTITY);
+            AppPushTokenEntity oldToken = spy(TestDataGenerator.appPushTokenEntity(pushToken, deviceId, TESTE_USER_ENTITY));
             given(appPushTokenEntityRepository.findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId))).willReturn(Optional.of(oldToken));
-            assertThatCode(() -> appPushService.updateAppPushToken(userId, new AppPushTokenRequest(deviceId, pushToken)))
+            given(appPushTokenEntityRepository.findByToken(eq(request.token()))).willReturn(Optional.empty());
+            assertThatCode(() -> appPushService.updateAppPushToken(userId, request))
                     .doesNotThrowAnyException();
+
+            then(oldToken).should().setToken(eq(request.token()));
         } else {
             given(appPushTokenEntityRepository.findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId))).willReturn(Optional.empty());
-            assertThatCode(() -> appPushService.updateAppPushToken(userId, new AppPushTokenRequest(deviceId, pushToken)))
+            assertThatCode(() -> appPushService.updateAppPushToken(userId, request))
                     .isInstanceOf(EntityNotFoundException.class);
         }
 
         then(appPushTokenEntityRepository).should().findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId));
+        then(appPushTokenEntityRepository).should(atLeast(0)).findByToken(eq(request.token()));
+    }
+
+    @DisplayName("앱푸시토큰 갱신 시 이미 존재하는 토큰으로 갱신할 경우")
+    @Test
+    void test_updateAppPushToken_duplicate_token() {
+        String pushToken = "test-token";
+        String deviceId = "test-device";
+        String userId = TESTE_USER_ENTITY.getUsername();
+        AppPushTokenRequest request = new AppPushTokenRequest(deviceId, "update-token");
+
+        AppPushTokenEntity oldToken = TestDataGenerator.appPushTokenEntity(1L, pushToken, deviceId, TESTE_USER_ENTITY);
+        AppPushTokenEntity duplicateToken = TestDataGenerator.appPushTokenEntity(2L, request.token(), TESTE_USER_ENTITY);
+        given(appPushTokenEntityRepository.findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId))).willReturn(Optional.of(oldToken));
+        given(appPushTokenEntityRepository.findByToken(eq(request.token()))).willReturn(Optional.of(duplicateToken));
+
+        assertThatCode(() -> appPushService.updateAppPushToken(userId, request))
+                .isInstanceOf(DuplicateKeyException.class);
+
+        then(appPushTokenEntityRepository).should().findByDeviceAndUserInfo_Username(eq(deviceId), eq(userId));
+        then(appPushTokenEntityRepository).should().findByToken(eq(request.token()));
     }
 }

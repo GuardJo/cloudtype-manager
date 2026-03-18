@@ -30,7 +30,8 @@ public interface AppPushService {
      *
      * @param username     회원 식별키
      * @param tokenRequest 변경 요청 사항 (device, push_token)
-     * @throws jakarta.persistence.EntityNotFoundException 해당하는 Entity가 존재하지 않을 경우
+     * @throws jakarta.persistence.EntityNotFoundException   해당하는 Entity가 존재하지 않을 경우
+     * @throws org.springframework.dao.DuplicateKeyException 변경 요청한 token이 이미 존재할 경우
      */
     void updateAppPushToken(String username, AppPushTokenRequest tokenRequest);
 }
