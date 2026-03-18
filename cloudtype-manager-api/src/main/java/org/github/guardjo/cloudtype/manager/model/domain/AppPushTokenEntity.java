@@ -15,6 +15,7 @@ public class AppPushTokenEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @Column(length = 300, nullable = false, unique = true)
     private String token;
 

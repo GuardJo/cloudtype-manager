@@ -8,10 +8,7 @@ import org.github.guardjo.cloudtype.manager.model.request.AppPushTokenRequest;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.github.guardjo.cloudtype.manager.service.AppPushService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/notifications")
@@ -28,6 +25,18 @@ public class NotificationController implements NotificationApiDoc {
                 principal.getUsername(), appPushTokenRequest.token(), appPushTokenRequest.device());
 
         appPushService.saveAppPushToken(appPushTokenRequest, principal.getUserInfo());
+
+        return BaseResponse.defaultSuccess();
+    }
+
+
+    @PatchMapping("/push-token")
+    @Override
+    public BaseResponse<String> updatePushToken(@AuthenticationPrincipal UserInfoPrincipal principal,
+                                                @RequestBody @Valid AppPushTokenRequest request) {
+        log.info("PATCH : /api/v1/notifications/push-token, username = {}, token = {}, device = {}", principal.getUsername(), request.token(), request.device());
+
+        appPushService.updateAppPushToken(principal.getUsername(), request);
 
         return BaseResponse.defaultSuccess();
     }

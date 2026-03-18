@@ -1,7 +1,6 @@
 package org.github.guardjo.cloudtype.manager.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.domain.AppPushTokenEntity;
@@ -10,7 +9,9 @@ import org.github.guardjo.cloudtype.manager.model.request.AppPushTokenRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.repository.AppPushTokenEntityRepository;
 import org.github.guardjo.cloudtype.manager.repository.UserInfoEntityRepository;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -48,13 +49,28 @@ public class AppPushServiceImpl implements AppPushService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getAppPushToken(String userId, String deviceId) {
-        return appPushTokenRepository.findByDeviceAndUserInfo_Username(deviceId, userId)
-                .orElseThrow(() -> {
-                    log.warn("Not found fcm-token, userId = {}, deviceId = {}", userId, deviceId);
-                    return new EntityNotFoundException(String.format("Not found fcm-token, userId = %s, deviceId = %s", userId, deviceId));
-                })
-                .getToken();
+        AppPushTokenEntity appPushTokenEntity = searchAppPushToken(userId, deviceId);
+        return appPushTokenEntity.getToken();
+    }
+
+    @Override
+    @Transactional
+    public void updateAppPushToken(String username, AppPushTokenRequest tokenRequest) {
+        AppPushTokenEntity appPushTokenEntity = searchAppPushToken(username, tokenRequest.device());
+
+        searchAppPushToken(tokenRequest.token())
+                .ifPresent((existedToken) -> {
+                    if (!existedToken.getId().equals(appPushTokenEntity.getId())) {
+                        log.warn("Already exist fcm-token, token = {}", tokenRequest.token());
+                        throw new DuplicateKeyException(String.format("Already exist fcm-token, token = %s", tokenRequest.token()));
+                    }
+                });
+
+        appPushTokenEntity.setToken(tokenRequest.token());
+
+        log.debug("Updated token of AppPushToken Entity, id = {}, updateToken = {}", appPushTokenEntity.getId(), tokenRequest.token());
     }
 
     /*
@@ -62,5 +78,16 @@ public class AppPushServiceImpl implements AppPushService {
      */
     private Optional<AppPushTokenEntity> searchAppPushToken(String token) {
         return appPushTokenRepository.findByToken(token);
+    }
+
+    /*
+    AppPushToken 조회
+     */
+    private AppPushTokenEntity searchAppPushToken(String username, String device) {
+        return appPushTokenRepository.findByDeviceAndUserInfo_Username(device, username)
+                .orElseThrow(() -> {
+                    log.warn("Not found fcm-token, userId = {}, deviceId = {}", username, device);
+                    return new EntityNotFoundException(String.format("Not found fcm-token, userId = %s, deviceId = %s", username, device));
+                });
     }
 }

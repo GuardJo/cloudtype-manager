@@ -1,6 +1,7 @@
 package org.github.guardjo.cloudtype.manager.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import org.github.guardjo.cloudtype.manager.config.auth.JwtTokenProvider;
 import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
 import org.github.guardjo.cloudtype.manager.model.request.AppPushTokenRequest;
@@ -10,15 +11,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.BDDMockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,5 +60,71 @@ class NotificationControllerTest {
                 .andExpect(status().isOk());
 
         then(appPushService).should().saveAppPushToken(eq(tokenRequest), eq(TEST_USER.getUserInfo()));
+    }
+
+    @DisplayName("PATCH : /api/v1/notifications/push-token")
+    @Test
+    void test_updatePushToken() throws Exception {
+        String device = "WEB";
+        String token = "update-push-token";
+
+        AppPushTokenRequest tokenRequest = new AppPushTokenRequest(device, token);
+        String requestContent = objectMapper.writeValueAsString(tokenRequest);
+
+        willDoNothing().given(appPushService).updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
+
+        mockMvc.perform(patch("/api/v1/notifications/push-token")
+                        .content(requestContent)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user(TEST_USER)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        then(appPushService).should().updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
+    }
+
+    @DisplayName("PATCH : /api/v1/notifications/push-token : Not Found")
+    @Test
+    void test_updatePushToken_not_found_entity() throws Exception {
+        String device = "WEB";
+        String token = "update-push-token";
+
+        AppPushTokenRequest tokenRequest = new AppPushTokenRequest(device, token);
+        String requestContent = objectMapper.writeValueAsString(tokenRequest);
+
+        willThrow(EntityNotFoundException.class).given(appPushService).updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
+
+        mockMvc.perform(patch("/api/v1/notifications/push-token")
+                        .content(requestContent)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user(TEST_USER)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+        then(appPushService).should().updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
+    }
+
+    @DisplayName("PATCH : /api/v1/notifications/push-token : Conflict")
+    @Test
+    void test_updatePushToken_duplicate_token() throws Exception {
+        String device = "WEB";
+        String token = "update-push-token";
+
+        AppPushTokenRequest tokenRequest = new AppPushTokenRequest(device, token);
+        String requestContent = objectMapper.writeValueAsString(tokenRequest);
+
+        willThrow(DuplicateKeyException.class).given(appPushService).updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
+
+        mockMvc.perform(patch("/api/v1/notifications/push-token")
+                        .content(requestContent)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user(TEST_USER)))
+                .andDo(print())
+                .andExpect(status().isConflict());
+
+        then(appPushService).should().updateAppPushToken(eq(TEST_USER.getUsername()), eq(tokenRequest));
     }
 }

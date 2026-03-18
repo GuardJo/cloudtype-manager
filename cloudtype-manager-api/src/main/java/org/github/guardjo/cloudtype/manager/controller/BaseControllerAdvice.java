@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -78,7 +79,8 @@ public class BaseControllerAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({
-            DataIntegrityViolationException.class
+            DataIntegrityViolationException.class,
+            DuplicateKeyException.class
     })
     @ResponseStatus(HttpStatus.CONFLICT)
     public BaseResponse<String> handleConflict(Exception e) {
@@ -87,7 +89,7 @@ public class BaseControllerAdvice extends ResponseEntityExceptionHandler {
         return BaseResponse.<String>builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .status(HttpStatus.CONFLICT.name())
-                .data("이미 사용중인 이름입니다.")
+                .data("이미 사용중인 값입니다.")
                 .build();
     }
 

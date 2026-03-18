@@ -11,4 +11,7 @@ import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 public interface NotificationApiDoc {
     @Operation(summary = "앱푸시 토큰 저장", description = "요청 회원에 대한 디바이스 정보 및 푸시알림 토큰을 저장한다.")
     BaseResponse<String> addPushToken(@Parameter(hidden = true) UserInfoPrincipal principal, AppPushTokenRequest request);
+
+    @Operation(summary = "앱푸시 토큰 갱신", description = "요청 회원의 디바이스 정보에 대한 푸시 알림 토큰을 갱신한다.")
+    BaseResponse<String> updatePushToken(@Parameter(hidden = true) UserInfoPrincipal principal, AppPushTokenRequest request);
 }
