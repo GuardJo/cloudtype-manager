@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.domain.AppPushMsgEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.AppPushTokenEntity;
+import org.github.guardjo.cloudtype.manager.model.request.CustomerInquiryRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.FirebaseMessageRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.InactiveServerNotification;
 import org.github.guardjo.cloudtype.manager.repository.AppPushMsgEntityRepository;
@@ -66,6 +67,13 @@ public class NotificationServiceImpl implements NotificationService {
         sendCount = firebaseMessageRequests.size();
 
         return CompletableFuture.completedFuture(sendCount);
+    }
+
+    @Override
+    public boolean sendInquiryMail(String customerUsername, CustomerInquiryRequest inquiryRequest) {
+        // TODO 기능 구현
+
+        return false;
     }
 
     /*

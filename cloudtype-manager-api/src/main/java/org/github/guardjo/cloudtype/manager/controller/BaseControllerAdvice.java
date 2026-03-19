@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSendException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -90,6 +91,18 @@ public class BaseControllerAdvice extends ResponseEntityExceptionHandler {
                 .statusCode(HttpStatus.CONFLICT.value())
                 .status(HttpStatus.CONFLICT.name())
                 .data("이미 사용중인 값입니다.")
+                .build();
+    }
+
+    @ExceptionHandler(MailSendException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public BaseResponse<String> handleInternalError(Exception e) {
+        log.warn("Internal Error Exception: {}", e.getMessage(), e);
+
+        return BaseResponse.<String>builder()
+                .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.name())
+                .data("요청에 실패하였습니다. 잠시 후 다시 시도해주세요.")
                 .build();
     }
 

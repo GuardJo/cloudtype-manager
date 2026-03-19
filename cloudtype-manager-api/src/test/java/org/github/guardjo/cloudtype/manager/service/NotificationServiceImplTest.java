@@ -5,6 +5,7 @@ import org.github.guardjo.cloudtype.manager.model.domain.AppPushMsgEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.AppPushTokenEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.request.CustomerInquiryRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.FirebaseMessageRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.InactiveServerNotification;
 import org.github.guardjo.cloudtype.manager.repository.AppPushMsgEntityRepository;
@@ -104,5 +105,14 @@ class NotificationServiceImplTest {
         then(messageSender).should().sendMessage(any(List.class));
         then(appPushTokenRepository).should().getReferenceById(eq(TEST_APP_PUSH_TOKEN.getId()));
         then(appPushMsgRepository).should().saveAll(any(List.class));
+    }
+
+    @DisplayName("문의 메일 발송")
+    @Test
+    void test_sendInquiryMail() {
+        CustomerInquiryRequest inquiryRequest = new CustomerInquiryRequest("Test-Title", "Test-type", "Test-content");
+
+        boolean actual = notificationService.sendInquiryMail(TEST_USER_ENTITY.getUsername(), inquiryRequest);
+        assertThat(actual).isTrue();
     }
 }
