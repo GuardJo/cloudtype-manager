@@ -16,7 +16,11 @@ comment on sequence app_push_msg_seq is '앱 푸시 메시지 식별키 시퀀�
 
 -- server_status_change_history ID sequence
 create sequence server_status_change_history_sequence;
-comment on sequence server_status_change_history_sequence is '서버 상태 변경 이력 식별키 시퀀스';
+comment on sequence server_status_change_history_sequence is '서버 상태 변경 이력 식별키 시퀀스'
+
+--- 고객 문의 ID sequence
+create sequence customer_inquiry_seq;
+comment on sequence customer_inquiry_seq is '고객문의 식별키 시퀀스';
 
 -- 사용자 정보
 create table user_info
@@ -150,6 +154,27 @@ comment on column server_status_change_history.stacktrace_text is '스택트레�
 comment on column server_status_change_history.response_body is '응답 바디';
 comment on column server_status_change_history.response_headers is '응답 헤더';
 comment on column server_status_change_history.server_id is 'server_info 외래키';
+
+--- 고객 문의 관리 테이블
+create table customer_inquiry(
+                                 id bigint primary key default nextval('customer_inquiry_seq'),
+                                 title varchar(100) not null,
+                                 inquiry_type varchar(50) not null,
+                                 content varchar(1000),
+                                 user_id varchar(100) not null,
+                                 created_at timestamp default current_timestamp,
+                                 modified_at timestamp default current_timestamp,
+                                 foreign key (user_id) references user_info
+);
+comment on table customer_inquiry is '고객 문의 관리 테이블';
+comment on column customer_inquiry.id is '식별키';
+comment on column customer_inquiry.title is '문의 제목';
+comment on column customer_inquiry.inquiry_type is '문의 종류';
+comment on column customer_inquiry.content is '문의 내용';
+comment on column customer_inquiry.user_id is '고객 계정 식별키';
+comment on column customer_inquiry.created_at is '생성일자';
+comment on column customer_inquiry.modified_at is '수정일자';
+
 
 -- spring batch
 
