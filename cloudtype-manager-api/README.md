@@ -91,9 +91,20 @@ text response_headers
 bigint server_id fk "not null"
  }
 
+customer_inquiry {
+bigint id pk "auto increment"
+varchar(100) title "문의 제목"
+varchar(50) inquiry_type "문의 종류"
+varchar(1000) content "문의 본문"
+varchar(100) user_id fk "회원 식별자"
+timestamp created_at "생성일자"
+timestamp modified_at "수정일자"
+}
+
 user_info ||--o{ server_info: "user_id"
 user_info o|--|{ refresh_token: "user_id"
 user_info ||--o{ app_push_token: "user_id"
+user_info ||--|{ customer_inquiry: "user_id"
 
 app_push_token ||--o{ app_push_msg: "token_id"
 

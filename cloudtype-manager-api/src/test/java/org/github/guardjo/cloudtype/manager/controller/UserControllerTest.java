@@ -7,9 +7,11 @@ import org.github.guardjo.cloudtype.manager.config.TestSecurityConfig;
 import org.github.guardjo.cloudtype.manager.config.auth.JwtTokenProvider;
 import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
 import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.request.CustomerInquiryRequest;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.service.AppPushService;
+import org.github.guardjo.cloudtype.manager.service.NotificationService;
 import org.github.guardjo.cloudtype.manager.util.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,10 +30,11 @@ import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,6 +55,9 @@ class UserControllerTest {
 
     @MockitoBean
     private AppPushService appPushService;
+
+    @MockitoBean
+    private NotificationService notificationService;
 
     @DisplayName("GET : /api/v1/users/me")
     @Test
@@ -112,5 +118,34 @@ class UserControllerTest {
         }
 
         then(appPushService).should().getAppPushToken(eq(TEST_USER_INFO.getUsername()), eq(deviceId));
+    }
+
+    @DisplayName("POST : /api/v1/users/me/inquiry")
+    @Test
+    void test_sendInquiry() throws Exception {
+        CustomerInquiryRequest inquiryRequest = new CustomerInquiryRequest("test-name", "test-type", "test-content");
+        String requestContent = objectMapper.writeValueAsString(inquiryRequest);
+
+        willDoNothing().given(notificationService).saveCustomerInquiry(eq(TEST_USER_PRINCIPAL.getUsername()), eq(inquiryRequest));
+
+        String response = mockMvc.perform(post("/api/v1/users/me/inquiry")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestContent)
+                        .with(csrf())
+                        .with(user(TEST_USER_PRINCIPAL)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+
+        JavaType responseType = objectMapper.getTypeFactory().constructParametricType(BaseResponse.class, String.class);
+        BaseResponse<String> actual = objectMapper.readValue(response, responseType);
+
+        assertThat(actual).isNotNull();
+        assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(actual.getStatus()).isEqualTo(HttpStatus.OK.name());
+
+        then(notificationService).should().saveCustomerInquiry(eq(TEST_USER_PRINCIPAL.getUsername()), eq(inquiryRequest));
     }
 }

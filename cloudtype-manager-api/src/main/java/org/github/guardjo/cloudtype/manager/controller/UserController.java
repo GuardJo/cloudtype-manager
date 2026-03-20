@@ -1,17 +1,17 @@
 package org.github.guardjo.cloudtype.manager.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.config.auth.UserInfoPrincipal;
+import org.github.guardjo.cloudtype.manager.model.request.CustomerInquiryRequest;
 import org.github.guardjo.cloudtype.manager.model.response.BaseResponse;
 import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.service.AppPushService;
+import org.github.guardjo.cloudtype.manager.service.NotificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController implements UserApiDoc {
     private final AppPushService appPushService;
+    private final NotificationService notificationService;
 
     @GetMapping("/me")
     @Override
@@ -34,5 +35,15 @@ public class UserController implements UserApiDoc {
         log.info("GET : /api/v1/users/me/fcm-token, username = {}, deviceId = {}", principal.getUsername(), deviceId);
 
         return BaseResponse.of(HttpStatus.OK, appPushService.getAppPushToken(principal.getUsername(), deviceId));
+    }
+
+    @PostMapping("/me/inquiry")
+    @Override
+    public BaseResponse<String> sendInquiry(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestBody @Valid CustomerInquiryRequest inquiryRequest) {
+        log.info("POST : /api/v1/users/me/inquiry, username = {}", principal.getUsername());
+
+        notificationService.saveCustomerInquiry(principal.getUsername(), inquiryRequest);
+
+        return BaseResponse.defaultSuccess();
     }
 }

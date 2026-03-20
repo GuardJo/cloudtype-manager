@@ -1,5 +1,7 @@
 package org.github.guardjo.cloudtype.manager.service;
 
+import org.github.guardjo.cloudtype.manager.model.request.CustomerInquiryRequest;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -12,4 +14,12 @@ public interface NotificationService {
      * @return 알림 발송 건수
      */
     CompletableFuture<Long> sendServerInactiveNotification(List<Long> inactiveServerIds);
+
+    /**
+     * 회원이 요청한 고객문의 관련 내용을 기반으로 DB에 저장한다.
+     *
+     * @param customerUsername 문의 고객 식별키
+     * @param inquiryRequest   문의 데이터
+     */
+    void saveCustomerInquiry(String customerUsername, CustomerInquiryRequest inquiryRequest);
 }
