@@ -16,11 +16,10 @@ public interface NotificationService {
     CompletableFuture<Long> sendServerInactiveNotification(List<Long> inactiveServerIds);
 
     /**
-     * 회원이 요청한 고객문의 관련 내용을 기반으로 관리자 메일로 송신한다.
+     * 회원이 요청한 고객문의 관련 내용을 기반으로 DB에 저장한다.
      *
      * @param customerUsername 문의 고객 식별키
      * @param inquiryRequest   문의 데이터
-     * @return 발송 여부
      */
-    boolean sendInquiryMail(String customerUsername, CustomerInquiryRequest inquiryRequest);
+    void saveCustomerInquiry(String customerUsername, CustomerInquiryRequest inquiryRequest);
 }

@@ -30,8 +30,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -122,13 +121,12 @@ class UserControllerTest {
     }
 
     @DisplayName("POST : /api/v1/users/me/inquiry")
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void test_sendInquiry(boolean isSent) throws Exception {
+    @Test
+    void test_sendInquiry() throws Exception {
         CustomerInquiryRequest inquiryRequest = new CustomerInquiryRequest("test-name", "test-email", "test-content");
         String requestContent = objectMapper.writeValueAsString(inquiryRequest);
 
-        given(notificationService.sendInquiryMail(eq(TEST_USER_PRINCIPAL.getUsername()), eq(inquiryRequest))).willReturn(isSent);
+        willDoNothing().given(notificationService).saveCustomerInquiry(eq(TEST_USER_PRINCIPAL.getUsername()), eq(inquiryRequest));
 
         String response = mockMvc.perform(post("/api/v1/users/me/inquiry")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -136,18 +134,18 @@ class UserControllerTest {
                         .with(csrf())
                         .with(user(TEST_USER_PRINCIPAL)))
                 .andDo(print())
-                .andExpect(isSent ? status().isOk() : status().isInternalServerError())
+                .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(StandardCharsets.UTF_8);
 
         JavaType responseType = objectMapper.getTypeFactory().constructParametricType(BaseResponse.class, String.class);
         BaseResponse<String> actual = objectMapper.readValue(response, responseType);
-        HttpStatus actualStatus = isSent ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR;
-        assertThat(actual).isNotNull();
-        assertThat(actual.getStatusCode()).isEqualTo(actualStatus.value());
-        assertThat(actual.getStatus()).isEqualTo(actualStatus.name());
 
-        then(notificationService).should().sendInquiryMail(eq(TEST_USER_PRINCIPAL.getUsername()), eq(inquiryRequest));
+        assertThat(actual).isNotNull();
+        assertThat(actual.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(actual.getStatus()).isEqualTo(HttpStatus.OK.name());
+
+        then(notificationService).should().saveCustomerInquiry(eq(TEST_USER_PRINCIPAL.getUsername()), eq(inquiryRequest));
     }
 }

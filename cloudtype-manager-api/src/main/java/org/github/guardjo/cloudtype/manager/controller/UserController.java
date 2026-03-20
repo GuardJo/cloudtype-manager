@@ -10,7 +10,6 @@ import org.github.guardjo.cloudtype.manager.model.vo.UserInfo;
 import org.github.guardjo.cloudtype.manager.service.AppPushService;
 import org.github.guardjo.cloudtype.manager.service.NotificationService;
 import org.springframework.http.HttpStatus;
-import org.springframework.mail.MailSendException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,13 +42,8 @@ public class UserController implements UserApiDoc {
     public BaseResponse<String> sendInquiry(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestBody @Valid CustomerInquiryRequest inquiryRequest) {
         log.info("POST : /api/v1/users/me/inquiry/mail, username = {}", principal.getUsername());
 
-        boolean isSent = notificationService.sendInquiryMail(principal.getUsername(), inquiryRequest);
+        notificationService.saveCustomerInquiry(principal.getUsername(), inquiryRequest);
 
-        if (isSent) {
-            return BaseResponse.defaultSuccess();
-        } else {
-            log.warn("Failed send inquiry mail, username = {}, inquiryTitle = {}", principal.getUsername(), inquiryRequest.title());
-            throw new MailSendException("Failed send inquiry mail");
-        }
+        return BaseResponse.defaultSuccess();
     }
 }

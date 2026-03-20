@@ -5,12 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.github.guardjo.cloudtype.manager.model.domain.AppPushMsgEntity;
 import org.github.guardjo.cloudtype.manager.model.domain.AppPushTokenEntity;
+import org.github.guardjo.cloudtype.manager.model.domain.CustomerInquiryEntity;
+import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
 import org.github.guardjo.cloudtype.manager.model.request.CustomerInquiryRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.FirebaseMessageRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.InactiveServerNotification;
-import org.github.guardjo.cloudtype.manager.repository.AppPushMsgEntityRepository;
-import org.github.guardjo.cloudtype.manager.repository.AppPushTokenEntityRepository;
-import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
+import org.github.guardjo.cloudtype.manager.repository.*;
 import org.github.guardjo.cloudtype.manager.util.FirebaseMessageSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -32,6 +32,8 @@ public class NotificationServiceImpl implements NotificationService {
     private final ServerInfoEntityRepository serverInfoRepository;
     private final AppPushTokenEntityRepository appPushTokenRepository;
     private final AppPushMsgEntityRepository appPushMsgRepository;
+    private final CustomerInquiryEntityRepository customerInquiryRepository;
+    private final UserInfoEntityRepository userInfoRepository;
 
     @Transactional
     @Async("notificationExecutor")
@@ -69,11 +71,21 @@ public class NotificationServiceImpl implements NotificationService {
         return CompletableFuture.completedFuture(sendCount);
     }
 
+    @Transactional
     @Override
-    public boolean sendInquiryMail(String customerUsername, CustomerInquiryRequest inquiryRequest) {
-        // TODO 기능 구현
+    public void saveCustomerInquiry(String customerUsername, CustomerInquiryRequest inquiryRequest) {
+        UserInfoEntity userInfo = userInfoRepository.getReferenceById(customerUsername);
 
-        return false;
+        CustomerInquiryEntity newInquiry = CustomerInquiryEntity.builder()
+                .title(inquiryRequest.title())
+                .inquiryType(inquiryRequest.inquiryType())
+                .content(inquiryRequest.content())
+                .userInfo(userInfo)
+                .build();
+
+        customerInquiryRepository.save(newInquiry);
+
+        log.debug("Save new CustomerInquiry, id = {}", newInquiry.getId());
     }
 
     /*

@@ -1,16 +1,11 @@
 package org.github.guardjo.cloudtype.manager.service;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
-import org.github.guardjo.cloudtype.manager.model.domain.AppPushMsgEntity;
-import org.github.guardjo.cloudtype.manager.model.domain.AppPushTokenEntity;
-import org.github.guardjo.cloudtype.manager.model.domain.ServerInfoEntity;
-import org.github.guardjo.cloudtype.manager.model.domain.UserInfoEntity;
+import org.github.guardjo.cloudtype.manager.model.domain.*;
 import org.github.guardjo.cloudtype.manager.model.request.CustomerInquiryRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.FirebaseMessageRequest;
 import org.github.guardjo.cloudtype.manager.model.vo.InactiveServerNotification;
-import org.github.guardjo.cloudtype.manager.repository.AppPushMsgEntityRepository;
-import org.github.guardjo.cloudtype.manager.repository.AppPushTokenEntityRepository;
-import org.github.guardjo.cloudtype.manager.repository.ServerInfoEntityRepository;
+import org.github.guardjo.cloudtype.manager.repository.*;
 import org.github.guardjo.cloudtype.manager.util.FirebaseMessageSender;
 import org.github.guardjo.cloudtype.manager.util.TestDataGenerator;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
 
@@ -45,6 +41,12 @@ class NotificationServiceImplTest {
 
     @Mock
     private AppPushMsgEntityRepository appPushMsgRepository;
+
+    @Mock
+    private UserInfoEntityRepository userInfoRepository;
+
+    @Mock
+    private CustomerInquiryEntityRepository customerInquiryRepository;
 
     @InjectMocks
     private NotificationServiceImpl notificationService;
@@ -107,12 +109,27 @@ class NotificationServiceImplTest {
         then(appPushMsgRepository).should().saveAll(any(List.class));
     }
 
-    @DisplayName("문의 메일 발송")
+    @DisplayName("고객 문의 저장")
     @Test
-    void test_sendInquiryMail() {
+    void test_saveCustomerInquiry() {
         CustomerInquiryRequest inquiryRequest = new CustomerInquiryRequest("Test-Title", "Test-type", "Test-content");
 
-        boolean actual = notificationService.sendInquiryMail(TEST_USER_ENTITY.getUsername(), inquiryRequest);
-        assertThat(actual).isTrue();
+        ArgumentCaptor<CustomerInquiryEntity> inquiryEntityCaptor = ArgumentCaptor.forClass(CustomerInquiryEntity.class);
+
+        given(userInfoRepository.getReferenceById(eq(TEST_USER_ENTITY.getUsername()))).willReturn(TEST_USER_ENTITY);
+        given(customerInquiryRepository.save(inquiryEntityCaptor.capture())).willReturn(mock(CustomerInquiryEntity.class));
+
+        assertThatCode(() -> notificationService.saveCustomerInquiry(TEST_USER_ENTITY.getUsername(), inquiryRequest))
+                .doesNotThrowAnyException();
+
+        CustomerInquiryEntity actual = inquiryEntityCaptor.getValue();
+        assertThat(actual).isNotNull();
+        assertThat(actual.getTitle()).isEqualTo(inquiryRequest.title());
+        assertThat(actual.getInquiryType()).isEqualTo(inquiryRequest.inquiryType());
+        assertThat(actual.getContent()).isEqualTo(inquiryRequest.content());
+        assertThat(actual.getUserInfo()).isEqualTo(TEST_USER_ENTITY);
+
+        then(userInfoRepository).should().getReferenceById(eq(TEST_USER_ENTITY.getUsername()));
+        then(customerInquiryRepository).should().save(any(CustomerInquiryEntity.class));
     }
 }
