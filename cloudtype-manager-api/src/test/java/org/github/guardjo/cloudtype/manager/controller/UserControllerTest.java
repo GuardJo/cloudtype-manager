@@ -123,7 +123,7 @@ class UserControllerTest {
     @DisplayName("POST : /api/v1/users/me/inquiry")
     @Test
     void test_sendInquiry() throws Exception {
-        CustomerInquiryRequest inquiryRequest = new CustomerInquiryRequest("test-name", "test-email", "test-content");
+        CustomerInquiryRequest inquiryRequest = new CustomerInquiryRequest("test-name", "test-type", "test-content");
         String requestContent = objectMapper.writeValueAsString(inquiryRequest);
 
         willDoNothing().given(notificationService).saveCustomerInquiry(eq(TEST_USER_PRINCIPAL.getUsername()), eq(inquiryRequest));

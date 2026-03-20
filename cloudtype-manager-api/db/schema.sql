@@ -164,7 +164,7 @@ create table customer_inquiry(
                                  user_id varchar(100) not null,
                                  created_at timestamp default current_timestamp,
                                  modified_at timestamp default current_timestamp,
-                                 foreign key (user_id) references user_info
+                                 foreign key (user_id) references user_info (username)
 );
 comment on table customer_inquiry is '고객 문의 관리 테이블';
 comment on column customer_inquiry.id is '식별키';

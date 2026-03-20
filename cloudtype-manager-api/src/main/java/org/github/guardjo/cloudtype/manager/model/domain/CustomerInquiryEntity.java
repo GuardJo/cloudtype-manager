@@ -9,7 +9,6 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Getter
-@ToString
 public class CustomerInquiryEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +20,7 @@ public class CustomerInquiryEntity extends BaseEntity {
     @Column(length = 50, nullable = false)
     private String inquiryType;
 
-    @Column(length = 1000, nullable = false)
+    @Column(length = 1000)
     private String content;
 
     @ManyToOne

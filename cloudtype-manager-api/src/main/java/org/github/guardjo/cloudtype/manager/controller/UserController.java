@@ -40,7 +40,7 @@ public class UserController implements UserApiDoc {
     @PostMapping("/me/inquiry")
     @Override
     public BaseResponse<String> sendInquiry(@AuthenticationPrincipal UserInfoPrincipal principal, @RequestBody @Valid CustomerInquiryRequest inquiryRequest) {
-        log.info("POST : /api/v1/users/me/inquiry/mail, username = {}", principal.getUsername());
+        log.info("POST : /api/v1/users/me/inquiry, username = {}", principal.getUsername());
 
         notificationService.saveCustomerInquiry(principal.getUsername(), inquiryRequest);
 
