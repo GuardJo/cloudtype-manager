@@ -40,6 +40,8 @@ jwt:
   refresh-token-expiration-millis: 604_800_000 # 7 days
   access-audience: "api-auth"
   refresh-audience: "refresh-auth"
+  filter-ignore-urls:
+    - "/api/v1/auth/refresh"
 
 cors:
   allow-credentials: true

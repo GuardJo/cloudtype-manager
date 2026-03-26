@@ -24,6 +24,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.AntPathMatcher;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -34,6 +35,7 @@ import java.util.Objects;
 public class JwtTokenProvider {
     private final SecretKey secretKey;
     private final JwtProperties jwtProperties;
+    private final AntPathMatcher antPathMatcher;
     private final UserDetailsService userDetailsService;
     private final UserInfoEntityRepository userInfoRepository;
     private final RefreshTokenEntityRepository refreshTokenRepository;
@@ -42,6 +44,7 @@ public class JwtTokenProvider {
     public JwtTokenProvider(JwtProperties jwtProperties, UserDetailsService userDetailsService, UserInfoEntityRepository userInfoEntityRepository, RefreshTokenEntityRepository refreshTokenEntityRepository, AccessBlackHashRepository accessBlackHashRepository) {
         this.jwtProperties = jwtProperties;
         this.secretKey = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
+        this.antPathMatcher = new AntPathMatcher();
         this.userDetailsService = userDetailsService;
         this.userInfoRepository = userInfoEntityRepository;
         this.refreshTokenRepository = refreshTokenEntityRepository;
@@ -156,6 +159,17 @@ public class JwtTokenProvider {
             log.error("JWT claims string is empty.", e);
         }
         return false;
+    }
+
+    /**
+     * 요청 URI이 JWT 인증 필터 처리 제외 URI인지 여부 반환
+     *
+     * @param requestUri 요청 URI
+     * @return 인증 절차가 필요한 URI면 true, 아니면 false
+     */
+    protected boolean shouldIgnore(String requestUri) {
+        return jwtProperties.getFilterIgnoreUrls().stream()
+                .anyMatch(url -> antPathMatcher.match(url, requestUri));
     }
 
     /*

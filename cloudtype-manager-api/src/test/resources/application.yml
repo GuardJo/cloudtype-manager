@@ -30,6 +30,8 @@ jwt:
   secret: "this-is-just-super-long-secret-key-for-local-test-and-it-will-be-replaced-in-production-env"
   access-token-expiration-millis: 1_800_000 # 30 minutes
   refresh-token-expiration-millis: 604_800_000 # 7 days
+  filter-ignore-urls:
+    - "/api/v1/auth/refresh"
 
 logging:
   level:

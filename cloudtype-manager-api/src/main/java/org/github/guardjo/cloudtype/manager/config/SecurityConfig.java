@@ -6,6 +6,7 @@ import org.github.guardjo.cloudtype.manager.config.auth.JwtAuthenticationFilter;
 import org.github.guardjo.cloudtype.manager.config.auth.OAuth2AuthenticationFailureHandler;
 import org.github.guardjo.cloudtype.manager.config.auth.OAuth2AuthenticationSuccessHandler;
 import org.github.guardjo.cloudtype.manager.config.properties.CorsProperties;
+import org.github.guardjo.cloudtype.manager.config.properties.JwtProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CorsProperties corsProperties;
+    private final JwtProperties jwtProperties;
     private final GoogleOAuth2UserService googleOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
@@ -34,7 +36,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(registry -> {
                     registry
-                            .requestMatchers("/api/v1/auth/refresh").permitAll()
+                            .requestMatchers(jwtProperties.getFilterIgnoreUrls().toArray(new String[0])).permitAll()
                             .requestMatchers("/api/**").authenticated()
                             .anyRequest().permitAll();
                 })
