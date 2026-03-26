@@ -18,7 +18,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -54,8 +53,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String requestUri = request.getRequestURI();
-        List<String> excludePaths = tokenProvider.getIgnorePaths();
-        return excludePaths.stream().anyMatch(requestUri::contains);
+
+        return tokenProvider.shouldIgnore(requestUri);
     }
 
     private String parseBearerToken(HttpServletRequest request) {
