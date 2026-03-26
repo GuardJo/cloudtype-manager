@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @Component
@@ -156,6 +157,15 @@ public class JwtTokenProvider {
             log.error("JWT claims string is empty.", e);
         }
         return false;
+    }
+
+    /**
+     * 토큰 인증 처리 제외 URL 목록을 반환한다.
+     *
+     * @return 토큰 인증 처리 제외 URL 목록
+     */
+    protected List<String> getIgnorePaths() {
+        return jwtProperties.getFilterIgnoreUrls();
     }
 
     /*

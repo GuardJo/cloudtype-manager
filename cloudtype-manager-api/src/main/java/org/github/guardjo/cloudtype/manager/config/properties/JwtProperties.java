@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.List;
+
 @ConfigurationProperties("jwt")
 @RequiredArgsConstructor
 @Getter
@@ -13,4 +15,5 @@ public class JwtProperties {
     private final long refreshTokenExpirationMillis;
     private final String accessAudience;
     private final String refreshAudience;
+    private final List<String> filterIgnoreUrls;
 }
