@@ -5,6 +5,7 @@ import SettingSupportButton from "@/components/setting-support-button";
 import {useRouter} from "next/navigation";
 import {useQuery} from "@tanstack/react-query";
 import {getUserInfo} from "@/lib/user-api-handler";
+import LogoutButton from "@/components/logout-button";
 
 /* 설정 페이지 */
 export default function SettingsPage() {
@@ -27,7 +28,7 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className='min-h-screen bg-slate-800 text-white pt-16 pb-6 animate-slide-in flex flex-col'>
+        <div className='text-white pt-16 pb-24 animate-slide-in flex flex-col'>
             <div className='px-6 py-6 flex-1'>
                 {isLoading || data?.statusCode !== 200 ?
                     <AccountInfoSection userName='loading...' userEmail='loading...'/> :
@@ -42,6 +43,10 @@ export default function SettingsPage() {
                 <SettingSupportButton settingName='Contact Us' onclick={handleGotoContactUs}/>
                 <SettingSupportButton settingName='Terms of Service' onclick={alertComingSoon}/>
                 <SettingSupportButton settingName='Privacy Policy' onclick={alertComingSoon}/>
+            </div>
+
+            <div className='px-6 mt-auto pt-8'>
+                <LogoutButton/>
             </div>
         </div>
     )
