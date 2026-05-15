@@ -124,5 +124,14 @@ export const handlers = [
         }
 
         return HttpResponse.json(userInfo);
+    }),
+    http.post(`${mockApiServerUrl}/api/v1/auth/logout`, () => {
+        const successes: BaseResponse<string> = {
+            statusCode: 200,
+            status: 'OK',
+            data: 'Successes'
+        }
+
+        return HttpResponse.json(successes);
     })
 ]

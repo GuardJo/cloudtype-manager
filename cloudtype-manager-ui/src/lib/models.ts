@@ -58,6 +58,15 @@ export type AppPushTokenAddParams = {
 }
 
 /**
+ * 로그아웃 요청
+ */
+export type LogoutParams = {
+    username: string,
+    accessToken: string,
+    refreshToken: string
+}
+
+/**
  * 회원 정보
  */
 export type UserInfo = {

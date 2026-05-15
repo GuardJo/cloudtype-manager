@@ -46,7 +46,7 @@ export default function SettingsPage() {
             </div>
 
             <div className='px-6 mt-auto pt-8'>
-                <LogoutButton/>
+                <LogoutButton userId={data!.data.id}/>
             </div>
         </div>
     )

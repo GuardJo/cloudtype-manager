@@ -1,7 +1,29 @@
+'use client'
+
+import {useMutation} from "@tanstack/react-query"
+import {logout} from "@/lib/auth-api-handler";
+import {useRouter} from "next/navigation";
+
 /* 로그아웃 버튼 컴포넌트 */
-export default function LogoutButton() {
+export default function LogoutButton({userId}: LogoutButtonProps) {
+    const router = useRouter()
+    const logoutMutation = useMutation({
+        mutationKey: ['logout', userId],
+        mutationFn: (username: string) => logout(username),
+        onSuccess: () => {
+            window.alert('로그아웃 되었습니다.')
+            router.replace('/')
+        },
+        onError: (error) => {
+            console.error(error)
+            window.alert(error.message)
+        }
+    })
+
     const handleLogout = () => {
-        // TODO 기능 연동
+        if (window.confirm('Would you like to log out?')) {
+            logoutMutation.mutate(userId)
+        }
     }
 
     return (
@@ -11,4 +33,8 @@ export default function LogoutButton() {
             Logout
         </button>
     )
+}
+
+interface LogoutButtonProps {
+    userId: string
 }
