@@ -44,7 +44,18 @@ export async function logout(userId: string) {
 
     const logoutRequest: LogoutParams = {
         username: userId,
-        accessToken: accessToken!,
-        refreshToken: refreshToken!,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+    }
+
+    const response = await fetch(`${apiUrl}/api/v1/auth/logout`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(logoutRequest),
+    })
+
+    if (response.status === 200) {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
     }
 }
