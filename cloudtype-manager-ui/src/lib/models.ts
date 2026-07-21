@@ -62,8 +62,8 @@ export type AppPushTokenAddParams = {
  */
 export type LogoutParams = {
     username: string,
-    accessToken: string,
-    refreshToken: string
+    accessToken: string | null,
+    refreshToken: string | null
 }
 
 /**

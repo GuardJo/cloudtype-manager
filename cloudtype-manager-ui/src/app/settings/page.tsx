@@ -12,7 +12,7 @@ export default function SettingsPage() {
     const router = useRouter()
     const {data, isLoading} = useQuery({
         queryKey: ['getUserInfo'],
-        queryFn: () => getUserInfo()
+        queryFn: getUserInfo,
     })
 
     const handleGotoPushTokenSetting = () => {
@@ -46,7 +46,9 @@ export default function SettingsPage() {
             </div>
 
             <div className='px-6 mt-auto pt-8'>
-                <LogoutButton userId={data!.data.id}/>
+                {(isLoading || data?.statusCode !== 200) ?
+                    <></> : <LogoutButton userId={data!.data.id}/>
+                }
             </div>
         </div>
     )

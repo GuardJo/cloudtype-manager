@@ -8,3 +8,13 @@ ignoredBuiltDependencies:
 
 packages:
   - 'packages/*'
+
+allowBuilds:
+  '@firebase/util': set this to true or false
+  '@tailwindcss/oxide': set this to true or false
+  core-js-pure: set this to true or false
+  esbuild: set this to true or false
+  msw: set this to true or false
+  protobufjs: set this to true or false
+  sharp: set this to true or false
+  unrs-resolver: set this to true or false
