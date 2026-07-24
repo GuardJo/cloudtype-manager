@@ -54,6 +54,10 @@ export async function logout(userId: string) {
         body: JSON.stringify(logoutRequest),
     })
 
+    if (!response.ok) {
+        throw new Error('Failed logout');
+    }
+
     if (response.status === 200) {
         localStorage.removeItem(AUTH_TOKEN_KEY);
         localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
