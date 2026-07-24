@@ -1,5 +1,5 @@
 import {getAuthHeaders} from "@/lib/utils";
-import {AuthRefreshParams, AuthTokenInfo, BaseResponse} from "@/lib/models";
+import {AuthRefreshParams, AuthTokenInfo, BaseResponse, LogoutParams} from "@/lib/models";
 import {AUTH_REFRESH_TOKEN_KEY, AUTH_TOKEN_KEY} from "@/lib/constants";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
@@ -32,5 +32,34 @@ export async function refreshAuthToken() {
         localStorage.removeItem(AUTH_TOKEN_KEY);
         localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
         window.location.href = '/login'
+    }
+}
+
+/**
+ * 현재 지닌 access-token 기반 로그아웃 처리
+ */
+export async function logout(userId: string) {
+    const accessToken = localStorage.getItem(AUTH_TOKEN_KEY);
+    const refreshToken = localStorage.getItem(AUTH_REFRESH_TOKEN_KEY);
+
+    const logoutRequest: LogoutParams = {
+        username: userId,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+    }
+
+    const response = await fetch(`${apiUrl}/api/v1/auth/logout`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(logoutRequest),
+    })
+
+    if (!response.ok) {
+        throw new Error('Failed logout');
+    }
+
+    if (response.status === 200) {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_REFRESH_TOKEN_KEY);
     }
 }

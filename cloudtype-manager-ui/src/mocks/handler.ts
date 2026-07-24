@@ -1,5 +1,5 @@
 import {http, HttpResponse} from "msw";
-import {AuthTokenInfo, BaseResponse, ServerDetail, ServerSummary} from "@/lib/models";
+import {AuthTokenInfo, BaseResponse, ServerDetail, ServerSummary, UserInfo} from "@/lib/models";
 import {AUTH_TOKEN_KEY} from "@/lib/constants";
 
 const mockApiServerUrl = process.env.NEXT_PUBLIC_API_SERVER_URL;
@@ -102,6 +102,30 @@ export const handlers = [
         return HttpResponse.json(successes);
     }),
     http.delete(`${mockApiServerUrl}/api/v1/servers/:id`, () => {
+        const successes: BaseResponse<string> = {
+            statusCode: 200,
+            status: 'OK',
+            data: 'Successes'
+        }
+
+        return HttpResponse.json(successes);
+    }),
+    http.get(`${mockApiServerUrl}/api/v1/users/me`, () => {
+        const userInfo: BaseResponse<UserInfo> = {
+            statusCode: 200,
+            status: 'OK',
+            data: {
+                id: 'TEST',
+                name: 'tester',
+                email: 'test@mail.com',
+                createdAt: '2026-01-01 10:00:00',
+                modifiedAt: '2026-01-01 10:00:00'
+            }
+        }
+
+        return HttpResponse.json(userInfo);
+    }),
+    http.post(`${mockApiServerUrl}/api/v1/auth/logout`, () => {
         const successes: BaseResponse<string> = {
             statusCode: 200,
             status: 'OK',
