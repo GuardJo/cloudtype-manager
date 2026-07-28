@@ -3,16 +3,25 @@ on:
   pull_request:
     paths:
       - cloudtype-manager-api/**
+      - .github/workflows/main.yml
     branches:
       - main
 
+  push:
+    branches:
+      - main
+    tags:
+      - api-v*
+    paths:
+      - cloudtype-manager-api/**
+      - .github/workflows/main.yml
+
   workflow_dispatch:
+    
 
 env:
-  S3_BUCKET_NAME: cloudtype-manager-deploy-bucket
-  AWS_REGION: ap-northeast-2
-  CODE_DEPLOY_NAME: cloudtype-manager-code-deploy
-  CODE_DEPLOY_GROUP: cloudtype-manager-api-deploy-group
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/cloudtype-manager-api
 
 jobs:
   build:
@@ -22,39 +31,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
-      - name: Setup JDK 17
-        uses: actions/setup-java@v3.14.1
+      - name: Setup Docker Build
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
         with:
-          java-version: '17'
-          distribution: 'corretto'
-          cache: gradle
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Gradle execute permission for gradlew
-        run: chmod +x ./gradlew
-        shell: bash
-        working-directory: ./cloudtype-manager-api
-
-      - name: Build with Gradle
-        run: ./gradlew clean build -x test
-        shell: bash
-        working-directory: ./cloudtype-manager-api
-
-      - name: Make zip file
-        run: zip -r ./$GITHUB_SHA.zip .
-        shell: bash
-        working-directory: ./cloudtype-manager-api
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4.1.0
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-
+            type=ref,event=tag
+            type=raw,value=latest,enabled=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Upload S3
-        run: aws s3 cp --region $AWS_REGION ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$GITHUB_SHA.zip
-        working-directory: ./cloudtype-manager-api
-
-      - name: Code Deploy
-        run: aws deploy create-deployment --application-name $CODE_DEPLOY_NAME --deployment-config-name CodeDeployDefault.AllAtOnce --deployment-group-name $CODE_DEPLOY_GROUP --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$GITHUB_SHA.zip
-        working-directory: ./cloudtype-manager-api
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./cloudtype-manager-api
+          file: ./cloudtype-manager-api/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
