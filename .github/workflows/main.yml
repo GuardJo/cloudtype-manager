@@ -3,9 +3,21 @@ on:
   pull_request:
     paths:
       - cloudtype-manager-api/**
-      - .github/workflows/api-docker.yml
+      - .github/workflows/main.yml
     branches:
       - main
+
+  push:
+    branches:
+      - main
+    tags:
+      - api-v*
+    paths:
+      - cloudtype-manager-api/**
+      - .github/workflows/main.yml
+
+  workflow_dispatch:
+    
 
 env:
   REGISTRY: ghcr.io
