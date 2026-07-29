@@ -13,11 +13,14 @@ RUN ./gradlew clean bootJar --no-daemon
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN addgroup -g 10001 -S spring \
+    && adduser -u 10001 -S spring -G spring \
+    && mkdir -p /app/logs/archived \
+    && chown -R spring:spring /app
 COPY --from=builder --chown=spring:spring \
     /workspace/build/libs/*.jar /app/app.jar
 
-USER spring
+USER 10001:10001
 EXPOSE 8080
 
 ENV SPRING_PROFILES_ACTIVE=prod
