@@ -7,3 +7,4 @@ logs
 secrets
 *.log
 .env*
+*.env

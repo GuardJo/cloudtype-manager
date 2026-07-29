@@ -49,9 +49,11 @@
         <!-- For production environment -->
         <logger name="org.github.guardjo.cloudtype.manager.util.BatchScheduler" level="INFO" additivity="false">
             <appender-ref ref="BATCH_LOG"/>
+            <appender-ref ref="CONSOLE"/>
         </logger>
         <root level="INFO">
             <appender-ref ref="API_LOG"/>
+            <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
 </configuration>
