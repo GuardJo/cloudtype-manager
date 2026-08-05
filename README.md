@@ -25,6 +25,6 @@ CloudType PaaS 플랫폼과 같은 프리티어 클라우드 서버에 대한 �
 - [운영 페이지](https://cloudtype-manager.vercel.app)
 
 ## API 모듈
-- EC2 배포
+- Oracle Cloud 배포
   - caddy 모듈을 통한 https 적용
-- [운영 페이지](https://52.78.88.250.nip.io)
+- [운영 페이지](https://161.33.181.44.nip.io/swagger-ui/index.html)
